@@ -5,7 +5,8 @@
   Modified By: Claude
   Description: Remembers which partner business referred a visitor (from the /Partners/Referrals/ page
                or a ?ref=CODE link) and adds a "Referred By" section to every email the
-               assessment pages send to the consultant inbox.
+               assessment pages send to the consultant inbox. Also labels each product link in
+               those consultant-only emails with the real catalog name, read from the link itself.
 */
 (function(){
   var KEY = 'mk_referral';
@@ -75,6 +76,23 @@
       + '</div></div>';
   }
 
+  /* Adds the real catalog name after each product link, e.g.
+     "Bright-Eyed Renewal Eye Cream (Timewise Eye Cream)".
+     WHY read it from the link's URL: the site's code never has to contain the trademarked
+     names, and only Hali's own inbox copy gets the label (customer emails are untouched). */
+  function labelProducts(html){
+    return String(html).replace(/(<a\b[^>]*href="(https?:\/\/www\.marykay\.com\/[^"]+)"[^>]*>[\s\S]*?<\/a>)/gi, function(all, a, url){
+      var parts = url.split('?')[0].split('/').filter(Boolean);
+      // WHY second-to-last: product URLs end in ".../<name-slug>-<id>/<sku>.html"
+      var seg = parts.length > 1 ? parts[parts.length - 2] : '';
+      if(!/-\d{5,}$/.test(seg)) return all;
+      var name = seg.replace(/-\d{5,}$/, '').split('-').map(function(w){
+        return w.length ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+      }).join(' ');
+      return a + ' <span style="color:#8a7a80;font-size:12px;font-weight:400;">(' + esc(name) + ')</span>';
+    });
+  }
+
   /* WHY wrap emailjs.send instead of editing each email: the assessment has several consultant
      emails (samples, personal assessment, saved results), and one wrapper covers them all. */
   function patch(){
@@ -84,8 +102,12 @@
       try{
         var r = read();
         var consultant = (typeof CONSULTANT_EMAIL !== 'undefined') ? CONSULTANT_EMAIL : CONSULTANT_FALLBACK;
-        if(r && params && params.to_email && String(params.to_email).toLowerCase() === String(consultant).toLowerCase()){
+        var toMe = params && params.to_email && String(params.to_email).toLowerCase() === String(consultant).toLowerCase();
+        if(toMe){
           params = Object.assign({}, params);
+          params.message = labelProducts(params.message || '');
+        }
+        if(r && toMe){
           var b = block(r);
           var msg = String(params.message || '');
           // WHY after the first body div: puts the referral right under the pink header where it's seen first
