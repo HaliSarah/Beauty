@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Quick Response &mdash; Mary Kay</title>
+<title>Quick Response | Beauty by Hali Sarah</title>
 <!-- SEO -->
-<meta name="description" content="Share quick feedback on your Mary Kay samples.">
+<meta name="description" content="Share quick feedback on your samples.">
 <meta name="robots" content="noindex, follow">
-<link rel="canonical" href="https://marykay.iqproductionz.com/SampleFollowUp/">
+<link rel="canonical" href="https://beauty.iqproductionz.com/SampleFollowUp/">
 <meta name="author" content="Hali Sarah Parsons">
 <meta name="theme-color" content="#e8507a">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Mary Kay by Hali Sarah">
-<meta property="og:title" content="Quick Response — Mary Kay">
-<meta property="og:description" content="Share quick feedback on your Mary Kay samples.">
-<meta property="og:url" content="https://marykay.iqproductionz.com/SampleFollowUp/">
+<meta property="og:site_name" content="Beauty by Hali Sarah">
+<meta property="og:title" content="Quick Response | Beauty by Hali Sarah">
+<meta property="og:description" content="Share quick feedback on your samples.">
+<meta property="og:url" content="https://beauty.iqproductionz.com/SampleFollowUp/">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Quick Response — Mary Kay">
-<meta name="twitter:description" content="Share quick feedback on your Mary Kay samples.">
+<meta name="twitter:title" content="Quick Response | Beauty by Hali Sarah">
+<meta name="twitter:description" content="Share quick feedback on your samples.">
 <!-- /SEO -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -226,14 +226,14 @@ function prodRows(){
 }
 
 function sendNotReceived(){
-  var html = emailWrap('<div class="hdr"><h1>Mary Kay</h1><p>SAMPLES NOT RECEIVED</p></div><div class="body"><div class="sec-title">Customer Details</div>'+customerRows()+'<div class="sec-title" style="margin-top:16px;">Products Requested</div>'+prodRows()+'</div>');
+  var html = emailWrap('<div class="hdr"><h1>Beauty by Hali Sarah</h1><p>SAMPLES NOT RECEIVED</p></div><div class="body"><div class="sec-title">Customer Details</div>'+customerRows()+'<div class="sec-title" style="margin-top:16px;">Products Requested</div>'+prodRows()+'</div>');
   if(window.emailjs){
     emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {to_email:CONSULTANT_EMAIL,subject:'SAMPLES NOT RECEIVED -- '+custName,message:html,reply_to:custEmail||CONSULTANT_EMAIL,name:custName}).then(function(){ showStep('step-not-received'); },function(){ showStep('step-not-received'); });
   } else { showStep('step-not-received'); }
 }
 
 function sendNotTried(){
-  var html = emailWrap('<div class="hdr"><h1>Mary Kay</h1><p>SAMPLES NOT TRIED YET</p></div><div class="body"><div class="sec-title">Customer Details</div>'+customerRows()+'<div class="sec-title" style="margin-top:16px;">Products Sent</div>'+prodRows()+'</div>');
+  var html = emailWrap('<div class="hdr"><h1>Beauty by Hali Sarah</h1><p>SAMPLES NOT TRIED YET</p></div><div class="body"><div class="sec-title">Customer Details</div>'+customerRows()+'<div class="sec-title" style="margin-top:16px;">Products Sent</div>'+prodRows()+'</div>');
   if(window.emailjs){
     emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {to_email:CONSULTANT_EMAIL,subject:'SAMPLES NOT TRIED YET -- '+custName,message:html,reply_to:custEmail||CONSULTANT_EMAIL,name:custName}).then(function(){ showStep('step-not-tried'); },function(){ showStep('step-not-tried'); });
   } else { showStep('step-not-tried'); }
@@ -244,7 +244,7 @@ function sendFeedback(){
   if(!feedback){ alert('Please share what you did not like so Hali Sarah can help!'); return; }
   var btn = document.getElementById('feedback-btn');
   btn.textContent = 'Sending...'; btn.disabled = true;
-  var html = emailWrap('<div class="hdr"><h1>Mary Kay</h1><p>Sample Feedback</p></div><div class="body"><div class="sec-title">Customer Details</div>'+customerRows()+'<div class="sec-title" style="margin-top:16px;">Their Feedback</div><p style="font-size:14px;color:#3d2530;line-height:1.9;background:#fff5f8;padding:16px;border-radius:10px;border-left:3px solid #e8507a;margin:0 0 20px;">'+feedback+'</p><div class="sec-title">Products They Sampled</div>'+prodRows()+'</div>');
+  var html = emailWrap('<div class="hdr"><h1>Beauty by Hali Sarah</h1><p>Sample Feedback</p></div><div class="body"><div class="sec-title">Customer Details</div>'+customerRows()+'<div class="sec-title" style="margin-top:16px;">Their Feedback</div><p style="font-size:14px;color:#3d2530;line-height:1.9;background:#fff5f8;padding:16px;border-radius:10px;border-left:3px solid #e8507a;margin:0 0 20px;">'+feedback+'</p><div class="sec-title">Products They Sampled</div>'+prodRows()+'</div>');
   if(window.emailjs){
     emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {to_email:CONSULTANT_EMAIL,subject:'Sample Feedback -- '+custName,message:html,reply_to:custEmail||CONSULTANT_EMAIL,name:custName}).then(function(){ showStep('step-feedback-sent'); },function(e){ console.warn(e); btn.textContent='Send Results to Sarah'; btn.disabled=false; alert('Error sending. Please try again.'); });
   } else { btn.textContent='Send Results to Sarah'; btn.disabled=false; alert('Email service not loaded. Please refresh and try again.'); }
@@ -252,7 +252,7 @@ function sendFeedback(){
 
 function sendSampleSuccess(){
   var html = emailWrap(
-    '<div class="hdr"><h1>Mary Kay</h1><p>SAMPLE SUCCESS</p></div>' +
+    '<div class="hdr"><h1>Beauty by Hali Sarah</h1><p>SAMPLE SUCCESS</p></div>' +
     '<div class="body">' +
       '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 16px;"><strong>' + custName + '</strong> (' + custEmail + ') loved their samples!</p>' +
       '<div style="margin-top:16px;">' + prodRows() + '</div>' +

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<!--
+  Title: Partner Program — Business Sign-Up
+  Author: Hali Sarah Parsons
+  Date: 2026-10-30
+  Modified By: Claude
+  Description: Page businesses reach from the partner mailer. They look up their referral link,
+               print their own QR materials, request free 4x6 flyers, choose how they get paid,
+               and open the partner agreement. Sign-ups are emailed to the consultant via EmailJS.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Partner Program | Hali Sarah Parsons</title>
+<!-- WHY noindex: businesses arrive from the mailer; this isn't meant for search traffic -->
+<meta name="robots" content="noindex, follow">
+<meta name="description" content="Earn 20% of sales from every customer you refer for their first 90 days. Get your referral link, free flyers and partner agreement.">
+<meta name="theme-color" content="#1a0812">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Partner Program | Hali Sarah Parsons">
+<meta property="og:description" content="Earn 20% of sales from every customer you refer for their first 90 days.">
+<meta property="og:url" content="https://beauty.iqproductionz.com/Partners/">
+<meta name="twitter:card" content="summary">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--pink:#e8507a;--pink-dark:#c93a62;--pink-soft:#f6a9c3;--blush:#fbd3e0;--pale:#fff5f8;
+    --plum:#3a0f2a;--gold:#c9a96e;--gold-lt:#ead5a8;--ink:#1a0812;--text:#2a1a20;--gray:#8a7a80;--line:#eedde4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Jost,system-ui,sans-serif;color:#fff;min-height:100vh;
+    /* WHY no product or company imagery: per Legal's reply, the partner page uses only our own colors and type */
+    background:
+      radial-gradient(circle at 15% 12%, rgba(246,169,195,.18) 0 140px, transparent 260px),
+      radial-gradient(circle at 88% 30%, rgba(201,169,110,.14) 0 120px, transparent 240px),
+      radial-gradient(ellipse at 50% 0%, #6a1e48 0%, #3a0f2a 42%, var(--ink) 100%);}
+  /* WHY solid fallback: iOS ignores fixed backgrounds and long pages would show white past the gradient */
+  html{background:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:56px 16px 40px}
+
+  /* ---------- Hero ---------- */
+  .hero{text-align:center;margin-bottom:34px}
+  .eyebrow{font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold-lt)}
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;font-size:clamp(52px,11vw,96px);line-height:.95;margin:14px 0 10px;
+    background:linear-gradient(100deg,var(--pink) 0%,var(--pink-soft) 40%,#fff3f7 52%,var(--pink-soft) 64%,var(--pink) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:15px;line-height:1.7;color:#f3dfe6;font-weight:300;max-width:520px;margin:0 auto}
+  .terms{display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px}
+  .chip{padding:10px 16px;border-radius:999px;border:1px solid rgba(234,213,168,.5);font-size:12px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--gold-lt);background:rgba(255,255,255,.04)}
+  .chip b{color:#fff;font-weight:600}
+
+  /* ---------- Cards ---------- */
+  .card{background:#fff;color:var(--text);border-radius:18px;padding:28px;margin-bottom:18px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .card.glass{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(234,213,168,.25);box-shadow:none}
+  .kicker{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+  h2{font-family:"Cormorant Garamond",serif;font-weight:400;font-size:30px;line-height:1.1;margin-bottom:12px}
+  .card.glass h2{color:var(--blush)}
+  .muted{font-size:13.5px;line-height:1.7;color:var(--gray)}
+  .card.glass .muted{color:#e9d7de}
+
+  .steps{display:grid;gap:14px;margin-top:8px;counter-reset:s}
+  .step{display:flex;gap:14px;align-items:flex-start}
+  .step:before{counter-increment:s;content:counter(s);flex:0 0 34px;height:34px;border-radius:50%;display:grid;place-items:center;
+    font-family:"Cormorant Garamond",serif;font-size:20px;color:var(--ink);background:linear-gradient(135deg,var(--gold-lt),var(--gold))}
+  .step p{font-size:14px;line-height:1.65;color:#f3dfe6}
+  .step b{color:#fff;font-weight:500}
+
+  /* ---------- Form bits ---------- */
+  label.lbl{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:16px 0 6px}
+  .req{color:var(--pink)}
+  .inp,select.inp{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:Jost,sans-serif;font-size:15px;
+    color:var(--text);background:#fff;outline:none;transition:border .2s,box-shadow .2s}
+  .inp:focus{border-color:var(--pink);box-shadow:0 0 0 4px rgba(232,80,122,.12)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row > div{flex:1;min-width:150px}
+  .row > div.sm{flex:0 0 90px;min-width:80px}
+  .hint{font-size:12px;color:var(--gray);margin-top:6px;line-height:1.55}
+
+  .combo{position:relative}
+  .list{position:absolute;left:0;right:0;top:calc(100% + 4px);max-height:280px;overflow-y:auto;background:#fff;border:1px solid var(--line);
+    border-radius:12px;box-shadow:0 14px 34px rgba(58,15,42,.18);display:none;z-index:20}
+  .list.open{display:block}
+  .opt{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f6eef1;font-size:14px;color:var(--text)}
+  .opt small{display:block;color:var(--gray);font-size:11.5px;margin-top:2px}
+  .opt mark{background:none;color:var(--pink-dark);font-weight:600}
+  .opt.active,.opt:hover{background:var(--pale)}
+  .opt.custom{color:var(--gray);font-style:italic}
+
+  .linkbox{display:none;margin-top:18px;padding:18px;border-radius:14px;background:var(--pale);border:1px dashed #f0c6d4}
+  .linkbox.show{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+  .linkbox .code{font-size:12px;color:var(--gray)}
+  .linkbox .code b{color:var(--pink-dark);letter-spacing:.08em}
+  .url{font-family:ui-monospace,Menlo,monospace;font-size:13px;word-break:break-all;color:var(--text);margin:6px 0 12px;
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
+  #qr{background:#fff;padding:8px;border-radius:10px;border:1px solid var(--line);width:136px;height:136px}
+  #qr img,#qr canvas{width:120px!important;height:120px!important}
+  @media (max-width:520px){.linkbox.show{grid-template-columns:1fr}#qr{margin:0 auto}}
+
+  .choice{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;margin-top:8px;cursor:pointer;transition:border .2s,background .2s}
+  .choice:has(input:checked){border-color:var(--pink);background:var(--pale)}
+  .choice input{margin-top:3px;accent-color:var(--pink);width:16px;height:16px;flex:0 0 auto}
+  .choice span{font-size:14px;line-height:1.5}
+  .choice small{display:block;color:var(--gray);font-size:12.5px}
+  .sub{display:none;margin-top:4px}
+  .sub.show{display:block}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;cursor:pointer;
+    font-family:Jost,sans-serif;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;
+    padding:13px 20px;transition:transform .2s,box-shadow .2s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-pink{background:linear-gradient(90deg,var(--pink),var(--pink-dark));color:#fff;box-shadow:0 10px 28px rgba(232,80,122,.35)}
+  .btn-line{background:#fff;color:var(--pink-dark);border:1.5px solid var(--pink)}
+  .btn-gold{background:linear-gradient(90deg,var(--gold-lt),var(--gold));color:var(--ink);box-shadow:0 10px 28px rgba(201,169,110,.35)}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+  .submit{width:100%;margin-top:22px;padding:17px}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+  .status{display:none;margin-top:14px;padding:12px 16px;border-radius:10px;font-size:13.5px;text-align:center}
+  .status.ok{display:block;background:#f0fff4;color:#2d6a4f;border:1px solid #b7e4c7}
+  .status.err{display:block;background:#fff0f0;color:#b3261e;border:1px solid #ffcdd2}
+
+  /* Opportunity call-out: big and low on the page on purpose (bottom-heavy layout) */
+  .opp{text-align:center;padding:38px 24px;border-radius:20px;margin-top:8px;
+    background:linear-gradient(135deg,rgba(232,80,122,.25),rgba(201,169,110,.18));border:1px solid rgba(234,213,168,.45)}
+  .opp h2{font-size:clamp(30px,6vw,44px);color:#fff}
+  .opp p{color:#f3dfe6;font-size:14px;margin:0 auto 20px;max-width:440px;line-height:1.7}
+  footer{text-align:center;margin-top:30px;font-size:12px;color:rgba(255,255,255,.6);line-height:2}
+  footer a{color:var(--gold-lt);letter-spacing:.14em;text-transform:uppercase;font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Hali Sarah Parsons · Independent Beauty Consultant</p>
+    <h1>Partner Program</h1>
+    <p>Thank you for opening my mailer! Share my free skin assessment with your customers and earn a share of every sale they make.</p>
+    <div class="terms">
+      <span class="chip"><b>20%</b> of all sales</span>
+      <span class="chip">First <b>90 days</b> per customer</span>
+      <span class="chip"><b>Free</b> 4×6 flyers</span>
+    </div>
+  </header>
+
+  <section class="card glass">
+    <p class="kicker">How it works</p>
+    <h2>Simple for you, simple for them</h2>
+    <div class="steps">
+      <div class="step"><p><b>Display the flyer.</b> I mail you free 4×6 card-stock flyers with a QR code, or you can print your own below.</p></div>
+      <div class="step"><p><b>Customers scan and pick your business.</b> The QR code opens a page where they choose your company name. That links them to your partner profile.</p></div>
+      <div class="step"><p><b>You earn 20%.</b> For the first 90 days after each customer is referred, you earn 20% of all their sales. Payment goes out the way you choose below.</p></div>
+    </div>
+  </section>
+
+  <!-- ─── REFERRAL LINK LOOKUP ───────────────────────── -->
+  <section class="card" id="link-card">
+    <p class="kicker">Step 1</p>
+    <h2>Find your business &amp; referral link</h2>
+    <p class="muted">Start typing your business name. Your exact link and QR code appear right away so you can share or print them.</p>
+    <label class="lbl" for="biz">Business name <span class="req">*</span></label>
+    <div class="combo">
+      <input class="inp" id="biz" type="text" autocomplete="off" placeholder="e.g. Hair Daze" role="combobox" aria-expanded="false" aria-controls="biz-list">
+      <div class="list" id="biz-list" role="listbox"></div>
+    </div>
+    <div class="hint" id="biz-hint">Not listed? Type your business name and choose “Use this name.” I'll create your link and email it to you.</div>
+
+    <div class="linkbox" id="linkbox">
+      <div>
+        <div class="code">Your referral code: <b id="code-out"></b></div>
+        <div class="url" id="url-out"></div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-line" id="copy-btn">Copy Link</button>
+          <button type="button" class="btn btn-pink" id="print-btn">Print My Own Flyer</button>
+        </div>
+        <!-- WHY: some partners want a styled QR (logo, colors); this points them to the free tool with their exact link -->
+        <div class="hint" style="margin-top:12px">Want a custom QR code? Copy your direct link above and paste it at
+          <a href="https://iqproductionz.com/QRCode" target="_blank" rel="noopener" style="color:var(--pink-dark);font-weight:500">iqproductionz.com/QRCode</a>.
+          <strong style="color:var(--pink-dark)">Partner bonus:</strong> create a free account there, enter your referral code when you sign up, and get <strong>$25 off</strong> your first dynamic QR code purchase.</div>
+      </div>
+      <div id="qr" aria-label="QR code for your referral link"></div>
+    </div>
+  </section>
+
+  <!-- ─── SIGN-UP FORM ───────────────────────────────── -->
+  <form class="card" id="signup" novalidate>
+    <p class="kicker">Step 2</p>
+    <h2>I'd like to do business with you</h2>
+    <p class="muted">Tell me where to send your free flyers and how you'd like to be paid.</p>
+
+    <div class="row">
+      <div><label class="lbl" for="contact">Your name <span class="req">*</span></label><input class="inp" id="contact" autocomplete="name"></div>
+      <div><label class="lbl" for="role">Title / role</label><input class="inp" id="role" placeholder="Owner, Manager…"></div>
+    </div>
+    <div class="row">
+      <div><label class="lbl" for="email">Email <span class="req">*</span></label><input class="inp" id="email" type="email" autocomplete="email"></div>
+      <div><label class="lbl" for="phone">Phone <span class="req">*</span></label><input class="inp" id="phone" type="tel" autocomplete="tel"></div>
+    </div>
+
+    <label class="lbl">Send my 4×6 card-stock flyers to <span class="req">*</span></label>
+    <label class="choice" id="onfile-choice">
+      <input type="radio" name="ship" value="onfile" checked>
+      <span>My business address on file<small id="onfile-addr">Pick your business in Step 1 to see it.</small></span>
+    </label>
+    <label class="choice">
+      <input type="radio" name="ship" value="other">
+      <span>A different address</span>
+    </label>
+    <div class="sub" id="ship-other">
+      <label class="lbl" for="s-street">Street address</label><input class="inp" id="s-street" autocomplete="address-line1">
+      <div class="row">
+        <div><label class="lbl" for="s-city">City</label><input class="inp" id="s-city" autocomplete="address-level2"></div>
+        <div class="sm"><label class="lbl" for="s-state">State</label><input class="inp" id="s-state" value="TX" maxlength="2" autocomplete="address-level1"></div>
+        <div class="sm"><label class="lbl" for="s-zip">ZIP</label><input class="inp" id="s-zip" inputmode="numeric" maxlength="10" autocomplete="postal-code"></div>
+      </div>
+    </div>
+
+    <label class="lbl" for="qty">How many flyers?</label>
+    <select class="inp" id="qty">
+      <option>25</option><option selected>50</option><option>100</option>
+    </select>
+
+    <label class="lbl" for="pay">How would you like to get paid? <span class="req">*</span></label>
+    <select class="inp" id="pay">
+      <option value="">Choose one…</option>
+      <option>CashApp</option><option>PayPal</option><option>Zelle</option><option>Check</option><option>Other</option>
+    </select>
+    <div class="sub" id="pay-detail-wrap">
+      <label class="lbl" for="pay-detail" id="pay-detail-lbl">Details</label>
+      <input class="inp" id="pay-detail">
+      <div class="hint" id="pay-hint"></div>
+    </div>
+    <label class="lbl" for="payee">Pay to (name or business on the account) <span class="req">*</span></label>
+    <input class="inp" id="payee">
+
+    <label class="choice" style="margin-top:20px">
+      <input type="checkbox" id="agree">
+      <span>I've read the <a href="agreement.html" target="_blank" style="color:var(--pink-dark)">Partner Agreement</a> and agree to its terms.
+        <small>20% of all sales from each referred customer during their first 90 days.</small></span>
+    </label>
+
+    <button class="btn btn-pink submit" id="submit-btn" type="submit">Sign Me Up →</button>
+    <div class="status" id="status" aria-live="polite"></div>
+  </form>
+
+  <!-- ─── OPPORTUNITY ────────────────────────────────── -->
+  <section class="opp">
+    <p class="kicker" style="color:var(--gold-lt)">Thinking bigger?</p>
+    <h2>Want to get 50% of all sales forever?</h2>
+    <p>Become a consultant yourself and run your own beauty business on your schedule.</p>
+    <a class="btn btn-gold" href="/Opportunity/">See the Opportunity →</a>
+  </section>
+
+  <footer>
+    <a href="agreement.html" id="agreement-link">Sign Agreement for Your Records</a><br>
+    Questions? <a href="mailto:sistahaymarykay@gmail.com" style="text-transform:none;letter-spacing:0">sistahaymarykay@gmail.com</a><br>
+    Hali Sarah Parsons · Independent Beauty Consultant · Atascocita, TX
+  </footer>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────
+const EJS_PUBLIC_KEY   = 'zmLo4nV99WWp2KjiR';
+const EJS_SERVICE_ID   = 'MaryKay';
+const EJS_TEMPLATE_ID  = 'template_z5qi34i';
+const CONSULTANT_EMAIL = 'sistahaymarykay@gmail.com';
+const SITE             = 'https://beauty.iqproductionz.com';
+const REFERRAL_PAGE    = SITE + '/Partners/Referrals/';   // where the flyer QR code sends customers
+const LIST_URL         = '/Partners/Referrals/partners.json';
+const ADDR_URL         = code => '/Partners/data/addr-' + code.charAt(0).toLowerCase() + '.json';
+const MAX_SHOWN        = 8;
+
+// WHY guard: if the EmailJS script is blocked, the page still works for links and printing
+if(window.emailjs) emailjs.init({ publicKey: EJS_PUBLIC_KEY });
+
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function norm(s){ return String(s).toLowerCase().replace(/[’'`.,&-]/g,'').replace(/\s+/g,' ').trim(); }
+
+let partners = null, index = null, loading = null;
+let matches = [], active = -1;
+let biz = null;            // {name, city, code}
+let onFileAddr = null;     // [street, city, state, zip]
+
+/** WHY lazy: the partner list is large, so it only downloads once someone starts typing */
+function loadList(){
+  if(partners) return Promise.resolve(partners);
+  if(loading) return loading;
+  loading = fetch(LIST_URL).then(r => r.json()).then(d => { partners = d; index = d.map(p => norm(p[0])); return d; })
+    .catch(() => { partners = []; index = []; return partners; });
+  return loading;
+}
+
+/** Starts-with matches first, then names containing every typed word (city counts too) */
+function search(q){
+  const n = norm(q);
+  if(n.length < 2 || !index) return [];
+  const a = [], b = [], words = n.split(' ');
+  for(let i = 0; i < index.length && a.length < MAX_SHOWN; i++) if(index[i].startsWith(n)) a.push(i);
+  for(let i = 0; i < index.length && a.length + b.length < MAX_SHOWN; i++){
+    if(index[i].startsWith(n)) continue;
+    const hay = index[i] + ' ' + partners[i][1].toLowerCase();
+    if(words.every(w => hay.indexOf(w) > -1)) b.push(i);
+  }
+  return a.concat(b);
+}
+
+function mark(name, q){
+  const i = name.toLowerCase().indexOf(q.toLowerCase());
+  return i < 0 || !q ? esc(name) : esc(name.slice(0,i)) + '<mark>' + esc(name.slice(i,i+q.length)) + '</mark>' + esc(name.slice(i+q.length));
+}
+
+function render(){
+  const q = $('biz').value;
+  matches = search(q); active = -1;
+  let html = matches.map((i,k) => {
+    const p = partners[i];
+    return '<div class="opt" data-k="'+k+'">' + mark(p[0], q.trim()) + '<small>' + esc(p[1] + (p[3] ? ' · ' + p[3] : '')) + '</small></div>';
+  }).join('');
+  if(q.trim().length >= 2) html += '<div class="opt custom" data-k="custom">Use this name: “' + esc(q.trim()) + '”</div>';
+  $('biz-list').innerHTML = html;
+  const open = q.trim().length >= 2;
+  $('biz-list').classList.toggle('open', open);
+  $('biz').setAttribute('aria-expanded', open);
+}
+
+function closeList(){ $('biz-list').classList.remove('open'); $('biz').setAttribute('aria-expanded','false'); }
+
+function pick(k){
+  if(k === 'custom') biz = { name: $('biz').value.trim(), city: '', code: '' };
+  else { const p = partners[matches[k]]; biz = { name: p[0], city: p[1], code: p[2] }; $('biz').value = p[0]; }
+  closeList();
+  showLink();
+  loadAddress();
+  syncAgreementLink();
+}
+
+/** Builds the exact referral link + QR. WHY the code in the link: it credits this business even if the customer never types the name */
+function showLink(){
+  const box = $('linkbox');
+  if(!biz || !biz.code){ box.classList.remove('show'); return; }
+  const url = REFERRAL_PAGE + '?ref=' + biz.code;
+  $('code-out').textContent = biz.code;
+  $('url-out').textContent = url;
+  $('qr').innerHTML = '';
+  // WHY try/catch: if the QR library didn't load, the link still shows and can be copied
+  try{ new QRCode($('qr'), { text: url, width: 240, height: 240, colorDark: '#3a0f2a', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
+  catch(e){ $('qr').textContent = 'QR unavailable'; }
+  box.classList.add('show');
+}
+
+/** Loads the business address on file from a small shard of the list. WHY shards: avoids downloading every address */
+function loadAddress(){
+  onFileAddr = null;
+  const out = $('onfile-addr');
+  if(!biz || !biz.code){
+    out.textContent = 'No address on file for this name. Please choose “A different address.”';
+    document.querySelector('input[name=ship][value=other]').checked = true; toggleShip();
+    return;
+  }
+  out.textContent = 'Looking up…';
+  fetch(ADDR_URL(biz.code)).then(r => r.json()).then(d => {
+    const a = d[biz.code];
+    if(!a){ out.textContent = 'No address on file. Please choose “A different address.”'; return; }
+    onFileAddr = a;
+    out.textContent = a[0] + ', ' + a[1] + ', ' + a[2] + ' ' + a[3];
+  }).catch(() => { out.textContent = 'Could not load the address. Please choose “A different address.”'; });
+}
+
+/** Points the agreement link at the typed/picked business so the printout is pre-filled */
+function syncAgreementLink(){
+  const name = (biz && biz.name) || $('biz').value.trim();
+  const q = new URLSearchParams();
+  if(biz && biz.code) q.set('ref', biz.code);
+  if(name) q.set('biz', name);
+  const s = q.toString();
+  document.querySelectorAll('a[href^="agreement.html"]').forEach(a => a.href = 'agreement.html' + (s ? '?' + s : ''));
+}
+$('biz').addEventListener('input', syncAgreementLink);
+$('biz').addEventListener('focus', loadList);
+$('biz').addEventListener('input', () => { biz = null; showLink(); loadList().then(render); });
+$('biz').addEventListener('keydown', e => {
+  const opts = $('biz-list').querySelectorAll('.opt');
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+    e.preventDefault(); if(!opts.length) return;
+    active = (active + (e.key === 'ArrowDown' ? 1 : -1) + opts.length) % opts.length;
+    opts.forEach((o,i) => o.classList.toggle('active', i === active)); opts[active].scrollIntoView({block:'nearest'});
+  } else if(e.key === 'Enter' && $('biz-list').classList.contains('open') && active > -1){
+    e.preventDefault(); const k = opts[active].dataset.k; pick(k === 'custom' ? 'custom' : +k);
+  } else if(e.key === 'Escape') closeList();
+});
+// WHY mousedown: fires before the input blurs, so taps on a suggestion register
+$('biz-list').addEventListener('mousedown', e => {
+  const o = e.target.closest('.opt'); if(!o) return; e.preventDefault();
+  pick(o.dataset.k === 'custom' ? 'custom' : +o.dataset.k);
+});
+$('biz').addEventListener('blur', () => setTimeout(closeList, 120));
+
+$('copy-btn').addEventListener('click', () => {
+  const t = $('url-out').textContent;
+  // WHY fallback: clipboard API is blocked on some browsers/http pages
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(
+    () => { $('copy-btn').textContent = 'Copied ✓'; setTimeout(() => $('copy-btn').textContent = 'Copy Link', 1600); },
+    () => { prompt('Copy your link:', t); });
+});
+
+/** Opens a printable 4x6 flyer with the partner's own QR code.
+    WHY no company logos/photos: Legal said self-made printed materials can't use them */
+$('print-btn').addEventListener('click', () => {
+  if(!biz || !biz.code) return;
+  const qrImg = $('qr').querySelector('img[src^="data:"]') || $('qr').querySelector('canvas');
+  const src = qrImg ? (qrImg.tagName === 'CANVAS' ? qrImg.toDataURL() : qrImg.src) : '';
+  const w = window.open('', '_blank');
+  if(!w){ alert('Please allow pop-ups to print your flyer.'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Flyer – ' + esc(biz.name) + '</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">'
+    + '<style>@page{size:4in 6in;margin:0}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Jost,sans-serif}'
+    + '.f{width:4in;height:6in;padding:.35in .3in;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;'
+    + 'background:linear-gradient(180deg,#fff5f8 0%,#fbd3e0 100%);color:#2a1a20;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    + '.k{font-size:9pt;letter-spacing:.3em;text-transform:uppercase;color:#a67c3d}h1{font-family:"Cormorant Garamond",serif;font-weight:300;font-size:34pt;line-height:1;color:#c93a62;margin:.08in 0}'
+    + 'p{font-size:10pt;line-height:1.5;margin-bottom:.14in}img{width:1.9in;height:1.9in;background:#fff;padding:.08in;border-radius:.1in}'
+    + '.r{margin-top:.12in;font-size:9pt;color:#6b4a58}.b{font-weight:500;color:#2a1a20}.s{margin-top:.1in;font-size:7.5pt;color:#8a7a80;letter-spacing:.08em}</style></head><body>'
+    + '<div class="f"><div class="k">Complimentary</div><h1>Free Skin Assessment</h1>'
+    + '<p>Find the skincare routine made for your skin in just a few minutes.</p>'
+    + (src ? '<img src="' + src + '" alt="QR code">' : '')
+    + '<div class="r">Scan to start · Shared by <span class="b">' + esc(biz.name) + '</span></div>'
+    + '<div class="s">Hali Sarah Parsons · Independent Beauty Consultant</div></div>'
+    + '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>');
+  w.document.close();
+});
+
+// ─── FORM: show/hide dependent fields ─────────────────
+function toggleShip(){
+  const other = document.querySelector('input[name=ship]:checked').value === 'other';
+  $('ship-other').classList.toggle('show', other);
+}
+document.querySelectorAll('input[name=ship]').forEach(r => r.addEventListener('change', toggleShip));
+
+/** WHY per-method labels: each payment app needs a different detail (cashtag, email, mailing name…) */
+const PAY = {
+  CashApp: ['$Cashtag', 'e.g. $HairDazeTX'],
+  PayPal:  ['PayPal email', 'The email on your PayPal account'],
+  Zelle:   ['Zelle email or phone', 'The email or mobile number enrolled in Zelle'],
+  Check:   ['Mail checks to', 'Leave blank to use the flyer shipping address above'],
+  Other:   ['Tell me how', 'e.g. Venmo @handle, direct deposit, store credit…']
+};
+$('pay').addEventListener('change', () => {
+  const m = PAY[$('pay').value];
+  $('pay-detail-wrap').classList.toggle('show', !!m);
+  if(m){ $('pay-detail-lbl').textContent = m[0]; $('pay-detail').placeholder = m[1]; $('pay-hint').textContent = ''; }
+});
+
+// ─── SUBMIT ──────────────────────────────────────────
+function shipAddress(){
+  if(document.querySelector('input[name=ship]:checked').value === 'onfile'){
+    return onFileAddr ? onFileAddr[0] + ', ' + onFileAddr[1] + ', ' + onFileAddr[2] + ' ' + onFileAddr[3] : '';
+  }
+  const s = $('s-street').value.trim(), c = $('s-city').value.trim(), st = $('s-state').value.trim().toUpperCase(), z = $('s-zip').value.trim();
+  return s && c && z ? s + ', ' + c + ', ' + (st || 'TX') + ' ' + z : '';
+}
+
+function status(type, msg){ const el = $('status'); el.className = 'status ' + type; el.textContent = msg; }
+
+function row(label, value){
+  return '<tr><td style="padding:7px 0;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#c9a96e;width:38%;vertical-align:top;">' + label
+    + '</td><td style="padding:7px 0;font-size:14px;color:#2a1a20;">' + (value ? esc(value) : '—') + '</td></tr>';
+}
+
+/** WHY one wrapper: both emails share the plum/pink look without repeating markup */
+function wrap(title, inner){
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;background:#fdf6f8;font-family:Jost,Arial,sans-serif;">'
+    + '<div style="padding:24px 16px;"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;">'
+    + '<div style="background:linear-gradient(135deg,#3a0f2a,#c93a62);padding:28px 36px;text-align:center;">'
+    + '<div style="font-family:Georgia,serif;font-size:26px;color:#fff;letter-spacing:2px;">Partner Program</div>'
+    + '<div style="font-size:11px;color:#ead5a8;letter-spacing:2px;text-transform:uppercase;margin-top:6px;">' + esc(title) + '</div></div>'
+    + '<div style="padding:28px 36px;">' + inner + '</div>'
+    + '<div style="background:#fce4ec;padding:16px;text-align:center;font-size:11px;color:#a06070;">Hali Sarah Parsons · Independent Beauty Consultant<br>'
+    + '<a href="mailto:' + CONSULTANT_EMAIL + '" style="color:#e8507a;">' + CONSULTANT_EMAIL + '</a></div></div></div></body></html>';
+}
+
+$('signup').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('contact').value.trim(), email = $('email').value.trim(), phone = $('phone').value.trim();
+  const bizName = (biz && biz.name) || $('biz').value.trim();
+  const pay = $('pay').value, payDetail = $('pay-detail').value.trim(), payee = $('payee').value.trim();
+  const addr = shipAddress();
+
+  // WHY each check names the field: the form is long, so a generic error would send people hunting
+  if(!bizName){ status('err','Please enter your business name in Step 1.'); $('biz').focus(); return; }
+  if(!name){ status('err','Please enter your name.'); $('contact').focus(); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ status('err','Please enter a valid email.'); $('email').focus(); return; }
+  if(phone.replace(/\D/g,'').length < 10){ status('err','Please enter a 10-digit phone number.'); $('phone').focus(); return; }
+  if(!addr){ status('err','Please choose the address on file or fill in a different address for your flyers.'); return; }
+  if(!pay){ status('err','Please choose how you would like to be paid.'); $('pay').focus(); return; }
+  if(pay !== 'Check' && !payDetail){ status('err','Please add your ' + PAY[pay][0] + '.'); $('pay-detail').focus(); return; }
+  if(!payee){ status('err','Please enter the name payments should go to.'); $('payee').focus(); return; }
+  if(!$('agree').checked){ status('err','Please confirm you agree to the Partner Agreement.'); return; }
+
+  const code = biz && biz.code ? biz.code : '';
+  const link = code ? REFERRAL_PAGE + '?ref=' + code : '(new business: create a code)';
+  const payLine = pay + ': ' + (payDetail || (pay === 'Check' ? 'mail to flyer address' : ''));
+  const shipChoice = document.querySelector('input[name=ship]:checked').value === 'onfile' ? 'Address on file' : 'Different address';
+
+  const consultant = wrap('New Partner Sign-Up',
+    '<table style="width:100%;border-collapse:collapse;">'
+    + row('Business', bizName) + row('City', biz && biz.city) + row('Referral code', code || 'Not on list')
+    + row('Referral link', link) + row('Contact', name + ($('role').value.trim() ? ' (' + $('role').value.trim() + ')' : ''))
+    + row('Email', email) + row('Phone', phone)
+    + row('Flyers', $('qty').value + ' × 4x6 card stock') + row('Ship to', addr + ' (' + shipChoice + ')')
+    + row('Payment', payLine) + row('Pay to', payee) + row('Agreed', 'Yes, ' + new Date().toLocaleString())
+    + '</table>');
+
+  const partner = wrap('Welcome Aboard',
+    '<p style="font-family:Georgia,serif;font-size:24px;color:#2a1a20;margin:0 0 14px;">Thank you, ' + esc(name.split(' ')[0]) + '!</p>'
+    + '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 14px;">I received your partner sign-up for <b>' + esc(bizName) + '</b>. '
+    + 'Your ' + esc($('qty').value) + ' free flyers will ship to: ' + esc(addr) + '.</p>'
+    + (code ? '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 6px;">Your referral link:</p>'
+      + '<p style="margin:0 0 16px;"><a href="' + link + '" style="color:#e8507a;font-weight:600;">' + link + '</a></p>'
+      + '<p style="font-size:13px;color:#8a7a80;line-height:1.7;margin:0 0 16px;">Want a custom QR code? Paste your link at <a href="https://iqproductionz.com/QRCode" style="color:#e8507a;">iqproductionz.com/QRCode</a>.' + (code ? ' Partner bonus: sign up there with code <b>' + code + '</b> for $25 off your first dynamic QR code.' : '') + '</p>'
+      : '<p style="font-size:14px;color:#3d2530;line-height:1.8;">I\'ll email your personal referral link shortly.</p>')
+    + '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 14px;">Terms: 20% of all sales from each customer you refer, for their first 90 days. Payment by ' + esc(pay) + '.</p>'
+    + '<p style="margin:18px 0 0;"><a href="' + SITE + '/Partners/agreement.html?' + (code ? 'ref=' + code + '&' : '') + 'biz=' + encodeURIComponent(bizName) + '" style="display:inline-block;background:#e8507a;color:#fff;padding:12px 24px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Sign Agreement for Your Records</a></p>');
+
+  const btn = $('submit-btn'); btn.disabled = true; btn.textContent = 'Sending…';
+  // WHY try/catch: EmailJS can fail on network/quota; keep what they typed and show the reason
+  try{
+    if(!window.emailjs) throw new Error('Email service did not load. Please refresh and try again.');
+    await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, { to_email: CONSULTANT_EMAIL, subject: 'NEW PARTNER - ' + bizName + (code ? ' [' + code + ']' : ''), message: consultant, reply_to: email, name: name });
+    await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, { to_email: email, subject: 'Welcome to the Partner Program', message: partner, reply_to: CONSULTANT_EMAIL, name: 'Hali Sarah Parsons' });
+    status('ok', '✓ You\'re signed up! Check your email for your link and agreement.');
+    btn.textContent = 'Signed Up ✓';
+  }catch(err){
+    console.error(err);
+    status('err', 'Sending failed: ' + (err.text || err.message || 'please try again.'));
+    btn.disabled = false; btn.textContent = 'Sign Me Up →';
+  }
+});
+
+/** WHY: a mailer can carry ?ref=CODE so the business is already picked when they arrive */
+(function prefill(){
+  const code = (new URLSearchParams(location.search).get('ref') || '').trim().toUpperCase();
+  if(!code) return;
+  loadList().then(d => {
+    const p = d.find(x => x[2] === code); if(!p) return;
+    $('biz').value = p[0]; biz = { name: p[0], city: p[1], code: p[2] };
+    showLink(); loadAddress(); syncAgreementLink();
+  });
+})();
+</script>
+</body>
+</html>

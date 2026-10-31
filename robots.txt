@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://marykay.iqproductionz.com/sitemap.xml
+Sitemap: https://beauty.iqproductionz.com/sitemap.xml
