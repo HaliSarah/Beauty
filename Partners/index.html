@@ -47,10 +47,15 @@
   /* ---------- Hero ---------- */
   .hero{text-align:center;margin-bottom:34px}
   .eyebrow{font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold-lt)}
+  /* WHY: tighter spacing on phones keeps "Independent Beauty Consultant" on one line */
+  @media (max-width:430px){.eyebrow{letter-spacing:.2em;font-size:10.5px}}
   h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;font-size:clamp(52px,11vw,96px);line-height:.95;margin:14px 0 10px;
     background:linear-gradient(100deg,var(--pink) 0%,var(--pink-soft) 40%,#fff3f7 52%,var(--pink-soft) 64%,var(--pink) 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent}
   .hero p{font-size:15px;line-height:1.7;color:#f3dfe6;font-weight:300;max-width:520px;margin:0 auto}
+  /* WHY: lets the second sentence sit on its own single line where the screen is wide enough; phones wrap it normally */
+  .hero p.wide{max-width:none}
+  @media (min-width:720px){.hero .one-line{white-space:nowrap}}
   .terms{display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px}
   .chip{padding:10px 16px;border-radius:999px;border:1px solid rgba(234,213,168,.5);font-size:12px;letter-spacing:.12em;
     text-transform:uppercase;color:var(--gold-lt);background:rgba(255,255,255,.04)}
@@ -139,9 +144,9 @@
 <div class="wrap">
 
   <header class="hero">
-    <p class="eyebrow">Hali Sarah Parsons · Independent Beauty Consultant</p>
+    <p class="eyebrow">Hali Sarah Parsons<br>Independent Beauty Consultant</p>
     <h1>Partner Program</h1>
-    <p>Thank you for opening my mailer! Share my free skin assessment with your customers and earn a share of every sale they make.</p>
+    <p class="wide">Thank you for opening my mailer!<br><span class="one-line">Share my free skin assessment with your customers and earn a share of every sale they make.</span></p>
     <div class="terms">
       <span class="chip"><b>20%</b> of all sales</span>
       <span class="chip">First <b>90 days</b> per customer</span>
@@ -235,8 +240,13 @@
       <input class="inp" id="pay-detail">
       <div class="hint" id="pay-hint"></div>
     </div>
-    <label class="lbl" for="payee">Pay to (name or business on the account) <span class="req">*</span></label>
-    <input class="inp" id="payee">
+    <label class="lbl">Pay to <span class="req">*</span></label>
+    <label class="choice"><input type="radio" name="payto" value="business" checked><span>Business name<small id="payto-biz">Your business name from above</small></span></label>
+    <label class="choice"><input type="radio" name="payto" value="personal"><span>Personal name</span></label>
+    <div class="sub" id="payee-wrap">
+      <label class="lbl" for="payee">Name on the account <span class="req">*</span></label>
+      <input class="inp" id="payee" autocomplete="name">
+    </div>
 
     <label class="choice" style="margin-top:20px">
       <input type="checkbox" id="agree">
@@ -340,6 +350,7 @@ function pick(k){
   showLink();
   loadAddress();
   syncAgreementLink();
+  syncPayTo();
 }
 
 /** Builds the exact referral link + QR. WHY the code in the link: it credits this business even if the customer never types the name */
@@ -457,6 +468,23 @@ $('pay').addEventListener('change', () => {
   if(m){ $('pay-detail-lbl').textContent = m[0]; $('pay-detail').placeholder = m[1]; $('pay-hint').textContent = ''; }
 });
 
+
+// ─── PAY TO ──────────────────────────────────────────
+/** WHY a choice instead of a blank box: most partners get paid as their business, so that's
+    the default; the write-in only opens when they pick "Personal name". */
+function bizNameNow(){ return (biz && biz.name) || $('biz').value.trim(); }
+function payeeName(){
+  return document.querySelector('input[name=payto]:checked').value === 'business' ? bizNameNow() : $('payee').value.trim();
+}
+function syncPayTo(){
+  const personal = document.querySelector('input[name=payto]:checked').value === 'personal';
+  $('payee-wrap').classList.toggle('show', personal);
+  $('payto-biz').textContent = bizNameNow() || 'Your business name from above';
+}
+document.querySelectorAll('input[name=payto]').forEach(r => r.addEventListener('change', () => { syncPayTo(); if(document.querySelector('input[name=payto]:checked').value === 'personal') $('payee').focus(); }));
+$('biz').addEventListener('input', syncPayTo);
+$('biz').addEventListener('blur', () => setTimeout(syncPayTo, 150));
+
 // ─── SUBMIT ──────────────────────────────────────────
 function shipAddress(){
   if(document.querySelector('input[name=ship]:checked').value === 'onfile'){
@@ -489,7 +517,7 @@ $('signup').addEventListener('submit', async e => {
   e.preventDefault();
   const name = $('contact').value.trim(), email = $('email').value.trim(), phone = $('phone').value.trim();
   const bizName = (biz && biz.name) || $('biz').value.trim();
-  const pay = $('pay').value, payDetail = $('pay-detail').value.trim(), payee = $('payee').value.trim();
+  const pay = $('pay').value, payDetail = $('pay-detail').value.trim(), payee = payeeName();
   const addr = shipAddress();
 
   // WHY each check names the field: the form is long, so a generic error would send people hunting
@@ -500,7 +528,7 @@ $('signup').addEventListener('submit', async e => {
   if(!addr){ status('err','Please choose the address on file or fill in a different address for your flyers.'); return; }
   if(!pay){ status('err','Please choose how you would like to be paid.'); $('pay').focus(); return; }
   if(pay !== 'Check' && !payDetail){ status('err','Please add your ' + PAY[pay][0] + '.'); $('pay-detail').focus(); return; }
-  if(!payee){ status('err','Please enter the name payments should go to.'); $('payee').focus(); return; }
+  if(!payee){ status('err', document.querySelector('input[name=payto]:checked').value === 'personal' ? 'Please enter the name on your payment account.' : 'Please enter your business name in Step 1.'); return; }
   if(!$('agree').checked){ status('err','Please confirm you agree to the Partner Agreement.'); return; }
 
   const code = biz && biz.code ? biz.code : '';

@@ -47,6 +47,8 @@
   /* ---------- Hero ---------- */
   .hero{text-align:center;margin-bottom:34px}
   .eyebrow{font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold-lt)}
+  /* WHY: tighter spacing on phones keeps "Independent Beauty Consultant" on one line */
+  @media (max-width:430px){.eyebrow{letter-spacing:.2em;font-size:10.5px}}
   h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;font-size:clamp(52px,11vw,96px);line-height:.95;margin:14px 0 10px;
     background:linear-gradient(100deg,var(--pink) 0%,var(--pink-soft) 40%,#fff3f7 52%,var(--pink-soft) 64%,var(--pink) 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent}
@@ -139,7 +141,7 @@
 <div class="wrap">
 
   <header class="hero">
-    <p class="eyebrow">Hali Sarah Parsons · Independent Beauty Consultant</p>
+    <p class="eyebrow">Hali Sarah Parsons<br>Independent Beauty Consultant</p>
     <h1>Become a Partner</h1>
     <p>Didn't get my mailer? You can still join. Register your business, get your own referral code and link, and earn a share of every sale your customers make.</p>
     <div class="terms">
@@ -191,16 +193,13 @@
       <div><label class="lbl" for="phone">Phone <span class="req">*</span></label><input class="inp" id="phone" type="tel" autocomplete="tel"></div>
     </div>
 
-    <label class="lbl">Send my 4×6 card-stock flyers to <span class="req">*</span></label>
-    <label class="choice"><input type="radio" name="ship" value="same" checked><span>My business address above</span></label>
-    <label class="choice"><input type="radio" name="ship" value="other"><span>A different address</span></label>
-    <div class="sub" id="ship-other">
-      <label class="lbl" for="s-street">Street address</label><input class="inp" id="s-street">
-      <div class="row">
-        <div><label class="lbl" for="s-city">City</label><input class="inp" id="s-city"></div>
-        <div class="sm"><label class="lbl" for="s-state">State</label><input class="inp" id="s-state" value="TX" maxlength="2"></div>
-        <div class="sm"><label class="lbl" for="s-zip">ZIP</label><input class="inp" id="s-zip" inputmode="numeric" maxlength="10"></div>
-      </div>
+    <!-- WHY its own required fields: flyers can go anywhere they choose; the business address is kept separately -->
+    <label class="lbl" for="s-street">Preferred mailing address for flyers <span class="req">*</span></label>
+    <input class="inp" id="s-street" placeholder="Where should I mail your free 4×6 flyers?" autocomplete="shipping address-line1">
+    <div class="row">
+      <div><label class="lbl" for="s-city">City <span class="req">*</span></label><input class="inp" id="s-city" autocomplete="shipping address-level2"></div>
+      <div class="sm"><label class="lbl" for="s-state">State</label><input class="inp" id="s-state" value="TX" maxlength="2" autocomplete="shipping address-level1"></div>
+      <div class="sm"><label class="lbl" for="s-zip">ZIP <span class="req">*</span></label><input class="inp" id="s-zip" inputmode="numeric" maxlength="10" autocomplete="shipping postal-code"></div>
     </div>
     <label class="lbl" for="qty">How many flyers?</label>
     <select class="inp" id="qty"><option>25</option><option selected>50</option><option>100</option></select>
@@ -214,8 +213,13 @@
       <label class="lbl" for="pay-detail" id="pay-detail-lbl">Details</label>
       <input class="inp" id="pay-detail">
     </div>
-    <label class="lbl" for="payee">Pay to (name or business on the account) <span class="req">*</span></label>
-    <input class="inp" id="payee">
+    <label class="lbl">Pay to <span class="req">*</span></label>
+    <label class="choice"><input type="radio" name="payto" value="business" checked><span>Business name<small id="payto-biz">Your business name from above</small></span></label>
+    <label class="choice"><input type="radio" name="payto" value="personal"><span>Personal name</span></label>
+    <div class="sub" id="payee-wrap">
+      <label class="lbl" for="payee">Name on the account <span class="req">*</span></label>
+      <input class="inp" id="payee" autocomplete="name">
+    </div>
 
     <label class="choice" style="margin-top:20px">
       <input type="checkbox" id="agree">
@@ -290,13 +294,10 @@ function checkExisting(){
 $('biz').addEventListener('blur', checkExisting);
 $('city').addEventListener('blur', checkExisting);
 
-document.querySelectorAll('input[name=ship]').forEach(r => r.addEventListener('change', () => {
-  $('ship-other').classList.toggle('show', document.querySelector('input[name=ship]:checked').value === 'other');
-}));
 
 /** WHY per-method labels: each payment app needs a different detail */
 const PAY = { CashApp:['$Cashtag','e.g. $GlamStudio713'], PayPal:['PayPal email',''], Zelle:['Zelle email or phone',''],
-  Check:['Mail checks to','Leave blank to use your business address'], Other:['Tell me how','e.g. Venmo @handle'] };
+  Check:['Mail checks to','Leave blank to use your preferred mailing address'], Other:['Tell me how','e.g. Venmo @handle'] };
 $('pay').addEventListener('change', () => {
   const m = PAY[$('pay').value];
   $('pay-detail-wrap').classList.toggle('show', !!m);
@@ -307,12 +308,28 @@ $('biz').addEventListener('input', () => {
   $('agree-link').href = '/Partners/agreement.html?biz=' + encodeURIComponent($('biz').value.trim());
 });
 
+
+// ─── PAY TO ──────────────────────────────────────────
+/** WHY a choice instead of a blank box: most partners get paid as their business, so that's
+    the default; the write-in only opens when they pick "Personal name". */
+function bizNameNow(){ return $('biz').value.trim(); }
+function payeeName(){
+  return document.querySelector('input[name=payto]:checked').value === 'business' ? bizNameNow() : $('payee').value.trim();
+}
+function syncPayTo(){
+  const personal = document.querySelector('input[name=payto]:checked').value === 'personal';
+  $('payee-wrap').classList.toggle('show', personal);
+  $('payto-biz').textContent = bizNameNow() || 'Your business name from above';
+}
+document.querySelectorAll('input[name=payto]').forEach(r => r.addEventListener('change', () => { syncPayTo(); if(document.querySelector('input[name=payto]:checked').value === 'personal') $('payee').focus(); }));
+$('biz').addEventListener('input', syncPayTo);
+$('biz').addEventListener('blur', () => setTimeout(syncPayTo, 150));
+
 $('reg').addEventListener('submit', async e => {
   e.preventDefault();
   const v = id => $(id).value.trim();
-  const shipOther = document.querySelector('input[name=ship]:checked').value === 'other';
-  const bizAddr = v('street') + ', ' + v('city') + ', ' + (v('state') || 'TX').toUpperCase() + ' ' + v('zip');
-  const shipTo = shipOther ? (v('s-street') && v('s-city') && v('s-zip') ? v('s-street') + ', ' + v('s-city') + ', ' + (v('s-state') || 'TX').toUpperCase() + ' ' + v('s-zip') : '') : bizAddr;
+  // WHY its own fields: flyers can go anywhere they choose; the business address is kept separately
+  const shipTo = v('s-street') && v('s-city') && v('s-zip') ? v('s-street') + ', ' + v('s-city') + ', ' + (v('s-state') || 'TX').toUpperCase() + ' ' + v('s-zip') : '';
 
   // WHY each check names the field: long form, so specific errors save hunting
   if(!v('biz')) return status('err','Please enter your business name.');
@@ -320,10 +337,10 @@ $('reg').addEventListener('submit', async e => {
   if(!v('contact')) return status('err','Please enter your name.');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) return status('err','Please enter a valid email.');
   if(v('phone').replace(/\D/g,'').length < 10) return status('err','Please enter a 10-digit phone number.');
-  if(!shipTo) return status('err','Please fill in the address for your flyers.');
+  if(!shipTo) return status('err','Please fill in your preferred mailing address for flyers.');
   if(!v('pay')) return status('err','Please choose how you would like to be paid.');
   if(v('pay') !== 'Check' && !v('pay-detail')) return status('err','Please add your ' + PAY[v('pay')][0] + '.');
-  if(!v('payee')) return status('err','Please enter the name payments should go to.');
+  if(!payeeName()) return status('err', document.querySelector('input[name=payto]:checked').value === 'personal' ? 'Please enter the name on your payment account.' : 'Please enter your business name.');
   if(!$('agree').checked) return status('err','Please confirm you agree to the Partner Agreement.');
   if(!window.MK_PARTNER_API) return status('err','Registration is being set up. Please email sistahaymarykay@gmail.com to join.');
 
@@ -336,7 +353,7 @@ $('reg').addEventListener('submit', async e => {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ business: v('biz'), type: v('type'), street: v('street'), city: v('city'), state: v('state'), zip: v('zip'),
         contact: v('contact'), role: v('role'), email: v('email'), phone: v('phone'), qty: v('qty'), shipTo: shipTo,
-        pay: v('pay'), payDetail: v('pay-detail') || (v('pay') === 'Check' ? 'Mail to business address' : ''), payee: v('payee'), agreed: true })
+        pay: v('pay'), payDetail: v('pay-detail') || (v('pay') === 'Check' ? 'Mail to preferred mailing address' : ''), payee: payeeName(), agreed: true })
     });
     const data = await res.json();
     if(!data.ok) throw new Error(data.error || 'Registration failed.');
