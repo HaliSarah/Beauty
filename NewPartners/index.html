@@ -111,6 +111,9 @@
   .choice span{font-size:14px;line-height:1.5}
   .choice small{display:block;color:var(--gray);font-size:12.5px}
   .sub{display:none;margin-top:4px}
+  .flyer-pick{display:flex;gap:10px;flex-wrap:wrap}
+  .flyer-pick .choice{flex:1;min-width:200px}
+  .choice small{display:block}
   .sub.show{display:block}
 
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;cursor:pointer;
@@ -195,6 +198,13 @@
     <!-- WHY: partners should know their contact info won't be used to sell to them -->
     <div class="hint" style="margin-top:8px">🔒 Your email and phone are only used for the partner program: sending your referral details and reaching you if there's ever a problem with a payment. I won't use them for sales or marketing.</div>
 
+    <!-- WHY: some partners would rather print their own; that choice skips the mailing address -->
+    <label class="lbl">Flyers <span class="req">*</span></label>
+    <div class="flyer-pick">
+      <label class="choice"><input type="radio" name="flyers" value="send" checked><span>Send Me Flyers</span></label>
+      <label class="choice"><input type="radio" name="flyers" value="print"><span>I'll Print My Own <small>(We will give you a specialized flyer when you submit)</small></span></label>
+    </div>
+    <div id="flyer-ship">
     <!-- WHY a choice: most partners want flyers at the business, but some prefer another address -->
     <label class="lbl">Preferred mailing address for flyers <span class="req">*</span></label>
     <label class="choice"><input type="radio" name="ship" value="above" checked><span>Use Above Address</span></label>
@@ -210,6 +220,7 @@
     </div>
     <label class="lbl" for="qty">How many flyers?</label>
     <select class="inp" id="qty"><option>25</option><option selected>50</option><option>100</option></select>
+    </div>
 
     <label class="lbl" for="pay">How would you like to get paid? <span class="req">*</span></label>
     <select class="inp" id="pay">
@@ -338,12 +349,17 @@ document.querySelectorAll('input[name=ship]').forEach(r => r.addEventListener('c
   $('ship-new').classList.toggle('show', isNew);
   if(isNew) $('s-street').focus();
 }));
+/** Shows the mailing address + amount only when they want flyers mailed */
+function printOwn(){ return document.querySelector('input[name=flyers]:checked').value === 'print'; }
+document.querySelectorAll('input[name=flyers]').forEach(r => r.addEventListener('change', () => {
+  $('flyer-ship').style.display = printOwn() ? 'none' : '';
+}));
 $('reg').addEventListener('submit', async e => {
   e.preventDefault();
   const v = id => $(id).value.trim();
   // WHY: "Use Above Address" copies the business address; "Add a New Address" uses the extra fields
   const useAbove = document.querySelector('input[name=ship]:checked').value === 'above';
-  const shipTo = useAbove
+  const shipTo = printOwn() ? 'N/A - printing own' : useAbove
     ? v('street') + ', ' + v('city') + ', ' + (v('state') || 'TX').toUpperCase() + ' ' + v('zip')
     : (v('s-street') && v('s-city') && v('s-zip') ? v('s-street') + ', ' + v('s-city') + ', ' + (v('s-state') || 'TX').toUpperCase() + ' ' + v('s-zip') : '');
 
@@ -368,7 +384,7 @@ $('reg').addEventListener('submit', async e => {
       // WHY text/plain: Google Apps Script can't answer the browser's pre-check for JSON requests
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ business: v('biz'), type: v('type'), street: v('street'), city: v('city'), state: v('state'), zip: v('zip'),
-        contact: v('contact'), role: v('role'), email: v('email'), phone: v('phone'), qty: v('qty'), shipTo: shipTo,
+        contact: v('contact'), role: v('role'), email: v('email'), phone: v('phone'), qty: printOwn() ? 'Print own' : v('qty'), shipTo: shipTo,
         pay: v('pay'), payDetail: v('pay-detail') || (v('pay') === 'Check' ? 'Mail to preferred mailing address' : ''), payee: payeeName(), agreed: true })
     });
     const data = await res.json();
@@ -390,6 +406,10 @@ function showDone(biz, code, existing){
   $('url-out').textContent = url;
   $('done-agree').href = '/Partners/agreement.html?ref=' + code + '&biz=' + encodeURIComponent(biz);
   if(existing) $('done').querySelector('.muted').textContent = 'You were already registered, so here is your existing code and link.';
+  // WHY: points print-their-own partners straight to their specialized flyer
+  else if(printOwn()) $('done').querySelector('.muted').innerHTML = 'Your code and link are below, and I\'ve emailed them to you too. Tap <strong>Print My Own Flyer</strong> for your specialized flyer with your personal QR code.';
+  // WHY: partners who asked for mailed flyers should know those are still coming; printing is an extra
+  else $('done').querySelector('.muted').innerHTML = 'Your code and link are below, and I\'ve emailed them to you too.<br><strong>We are still sending you our flyers!</strong> Your ' + esc($('qty').value) + ' flyers will be mailed to you. But we also wanted to extend an additional option: tap <strong>Print My Own Flyer</strong> for a specialized flyer with your personal QR code.';
   // WHY try/catch: if the QR library is blocked, the link still works
   // WHY lips design: matches the brand's kiss QR style; tested to scan with phone decoders
   try{ window._qrSrc = LipsQR.render($('qr'), url, { size: 150 }); }

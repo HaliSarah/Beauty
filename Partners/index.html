@@ -114,6 +114,9 @@
   .choice span{font-size:14px;line-height:1.5}
   .choice small{display:block;color:var(--gray);font-size:12.5px}
   .sub{display:none;margin-top:4px}
+  .flyer-pick{display:flex;gap:10px;flex-wrap:wrap}
+  .flyer-pick .choice{flex:1;min-width:200px}
+  .choice small{display:block}
   .sub.show{display:block}
 
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;cursor:pointer;
@@ -209,6 +212,13 @@
     <!-- WHY: partners should know their contact info won't be used to sell to them -->
     <div class="hint" style="margin-top:8px">🔒 Your email and phone are only used for the partner program: sending your referral details and reaching you if there's ever a problem with a payment. I won't use them for sales or marketing.</div>
 
+    <!-- WHY: some partners would rather print their own; that choice skips the mailing address -->
+    <label class="lbl">Flyers <span class="req">*</span></label>
+    <div class="flyer-pick">
+      <label class="choice"><input type="radio" name="flyers" value="send" checked><span>Send Me Flyers</span></label>
+      <label class="choice"><input type="radio" name="flyers" value="print"><span>I'll Print My Own <small>(We will give you a specialized flyer when you submit)</small></span></label>
+    </div>
+    <div id="flyer-ship">
     <label class="lbl">Send my 4×6 card-stock flyers to <span class="req">*</span></label>
     <label class="choice" id="onfile-choice">
       <input type="radio" name="ship" value="onfile" checked>
@@ -231,6 +241,7 @@
     <select class="inp" id="qty">
       <option>25</option><option selected>50</option><option>100</option>
     </select>
+    </div>
 
     <label class="lbl" for="pay">How would you like to get paid? <span class="req">*</span></label>
     <select class="inp" id="pay">
@@ -517,6 +528,12 @@ function branded(tagline, firstName, inner){
     + '</div></div></body></html>';
 }
 
+/** Shows the mailing address + amount only when they want flyers mailed */
+function printOwn(){ return document.querySelector('input[name=flyers]:checked').value === 'print'; }
+document.querySelectorAll('input[name=flyers]').forEach(r => r.addEventListener('change', () => {
+  $('flyer-ship').style.display = printOwn() ? 'none' : '';
+}));
+
 // ─── SUBMIT ──────────────────────────────────────────
 function shipAddress(){
   if(document.querySelector('input[name=ship]:checked').value === 'onfile'){
@@ -550,14 +567,14 @@ $('signup').addEventListener('submit', async e => {
   const name = $('contact').value.trim(), email = $('email').value.trim(), phone = $('phone').value.trim();
   const bizName = (biz && biz.name) || $('biz').value.trim();
   const pay = $('pay').value, payDetail = $('pay-detail').value.trim(), payee = payeeName();
-  const addr = shipAddress();
+  const addr = printOwn() ? 'Printing their own' : shipAddress();
 
   // WHY each check names the field: the form is long, so a generic error would send people hunting
   if(!bizName){ status('err','Please enter your business name in Step 1.'); $('biz').focus(); return; }
   if(!name){ status('err','Please enter your name.'); $('contact').focus(); return; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ status('err','Please enter a valid email.'); $('email').focus(); return; }
   if(phone.replace(/\D/g,'').length < 10){ status('err','Please enter a 10-digit phone number.'); $('phone').focus(); return; }
-  if(!addr){ status('err','Please choose the address on file or fill in a different address for your flyers.'); return; }
+  if(!addr){ status('err','Please choose the address on file or fill in a different address for your flyers.'); return; }  // (always set when printing their own)
   if(!pay){ status('err','Please choose how you would like to be paid.'); $('pay').focus(); return; }
   if(pay !== 'Check' && !payDetail){ status('err','Please add your ' + PAY[pay][0] + '.'); $('pay-detail').focus(); return; }
   if(!payee){ status('err', document.querySelector('input[name=payto]:checked').value === 'personal' ? 'Please enter the name on your payment account.' : 'Please enter your business name in Step 1.'); return; }
@@ -573,14 +590,15 @@ $('signup').addEventListener('submit', async e => {
     + row('Business', bizName) + row('City', biz && biz.city) + row('Referral code', code || 'Not on list')
     + row('Referral link', link) + row('Contact', name + ($('role').value.trim() ? ' (' + $('role').value.trim() + ')' : ''))
     + row('Email', email) + row('Phone', phone)
-    + row('Flyers', $('qty').value + ' × 4x6 card stock') + row('Ship to', addr + ' (' + shipChoice + ')')
+    + row('Flyers', printOwn() ? 'Printing their own (specialized flyer from the page)' : $('qty').value + ' × 4x6 card stock') + row('Ship to', printOwn() ? 'N/A' : addr + ' (' + shipChoice + ')')
     + row('Payment', payLine) + row('Pay to', payee) + row('Agreed', 'Yes, ' + new Date().toLocaleString())
     + '</table>');
 
   const agreeUrl = SITE + '/Partners/agreement.html?' + (code ? 'ref=' + code + '&' : '') + 'biz=' + encodeURIComponent(bizName);
   const partner = branded('Partner Program', name.split(' ')[0],
     '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;">I received your partner sign-up for <strong>' + esc(bizName) + '</strong>. '
-    + 'Your ' + esc($('qty').value) + ' free 4×6 flyers will ship to: ' + esc(addr) + '.</p>'
+    + (printOwn() ? 'You chose to print your own flyers. Your specialized flyer with your personal QR code is on the partner page: pick your business and tap <strong>Print My Own Flyer</strong> anytime.</p>'
+      : 'Your ' + esc($('qty').value) + ' free 4×6 flyers will ship to: ' + esc(addr) + '.</p>')
     + (code
       ? '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;">Your referral code is <strong style="color:#e8507a;letter-spacing:1px;">' + code + '</strong>. Share your personal link:</p>'
         + '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;"><a href="' + link + '" target="_blank" style="color:#e8507a;text-decoration:underline;font-weight:500;">' + link + '</a></p>'
@@ -601,10 +619,23 @@ $('signup').addEventListener('submit', async e => {
     if(window.MK_PARTNER_API){
       fetch(window.MK_PARTNER_API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'join', code: code, business: bizName, city: (biz && biz.city) || '',
-          contact: name, role: $('role').value.trim(), email: email, phone: phone, qty: $('qty').value,
-          shipTo: addr, pay: pay, payDetail: payDetail, payee: payee, agreed: true }) }).catch(() => {});
+          contact: name, role: $('role').value.trim(), email: email, phone: phone, qty: printOwn() ? 'Print own' : $('qty').value,
+          shipTo: printOwn() ? 'N/A - printing own' : addr, pay: pay, payDetail: payDetail, payee: payee, agreed: true }) }).catch(() => {});
     }
     status('ok', '✓ You\'re signed up! Check your email for your link and agreement.');
+    // WHY a button here: a print window can only open from a tap, not automatically after sending
+    if(code){
+      // WHY: partners who asked for mailed flyers should know those are still coming;
+      // printing their own is offered as an extra, not a replacement
+      if(!printOwn()){
+        const note = document.createElement('p'); note.style.cssText = 'margin:12px 0 0;font-size:14px;line-height:1.6;';
+        note.innerHTML = '<strong>We are still sending you our flyers!</strong> Your ' + esc($('qty').value) + ' flyers will be mailed to you.<br>But we also wanted to extend an additional option: print your own specialized flyer with your personal QR code anytime.';
+        $('status').appendChild(note);
+      }
+      const b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn btn-pink'; b2.style.marginTop = '12px';
+      b2.textContent = 'Print My Specialized Flyer'; b2.onclick = () => $('print-btn').click();
+      $('status').appendChild(document.createElement('br')); $('status').appendChild(b2);
+    }
     btn.textContent = 'Signed Up ✓';
   }catch(err){
     console.error(err);
@@ -620,7 +651,7 @@ $('signup').addEventListener('submit', async e => {
   loadList().then(d => {
     const p = d.find(x => x[2] === code); if(!p) return;
     $('biz').value = p[0]; biz = { name: p[0], city: p[1], code: p[2] };
-    showLink(); loadAddress(); syncAgreementLink();
+    showLink(); loadAddress(); syncAgreementLink(); syncPayTo();
   });
 })();
 </script>
