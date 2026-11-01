@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<!--
+  Title: New Partner Registration
+  Author: Hali Sarah Parsons
+  Date: 2026-10-31
+  Modified By: Claude
+  Description: Sign-up page for businesses that weren't on the partner mailing list. Sends the
+               details to a Google Sheet (via Google Apps Script), which assigns a referral code
+               not already in use, emails Hali and the business, and makes the business show up
+               on the customer Referrals page.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Become a Partner | Beauty by Hali Sarah</title>
+<meta name="robots" content="noindex, follow">
+<meta name="description" content="Register your business as a partner and earn 20% of sales from every customer you refer for their first 90 days.">
+<meta name="theme-color" content="#1a0812">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Become a Partner | Beauty by Hali Sarah">
+<meta property="og:description" content="Earn 20% of sales from every customer you refer for their first 90 days.">
+<meta property="og:url" content="https://beauty.iqproductionz.com/NewPartners/">
+<meta property="og:image" content="https://beauty.iqproductionz.com/assets/share/share-main.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script src="/assets/partner/config.js"></script>
+<!-- WHY self-hosted: the lips QR design needs the raw QR grid, which this library provides -->
+<script src="/assets/partner/qrcode-generator.js"></script>
+<script src="/assets/partner/lipsqr.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--pink:#e8507a;--pink-dark:#c93a62;--pink-soft:#f6a9c3;--blush:#fbd3e0;--pale:#fff5f8;
+    --plum:#3a0f2a;--gold:#c9a96e;--gold-lt:#ead5a8;--ink:#1a0812;--text:#2a1a20;--gray:#8a7a80;--line:#eedde4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Jost,system-ui,sans-serif;color:#fff;min-height:100vh;
+    /* WHY no product or company imagery: per Legal's reply, the partner page uses only our own colors and type */
+    background:
+      radial-gradient(circle at 15% 12%, rgba(246,169,195,.18) 0 140px, transparent 260px),
+      radial-gradient(circle at 88% 30%, rgba(201,169,110,.14) 0 120px, transparent 240px),
+      radial-gradient(ellipse at 50% 0%, #6a1e48 0%, #3a0f2a 42%, var(--ink) 100%);}
+  /* WHY solid fallback: iOS ignores fixed backgrounds and long pages would show white past the gradient */
+  html{background:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:56px 16px 40px}
+
+  /* ---------- Hero ---------- */
+  .hero{text-align:center;margin-bottom:34px}
+  .eyebrow{font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold-lt)}
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;font-size:clamp(52px,11vw,96px);line-height:.95;margin:14px 0 10px;
+    background:linear-gradient(100deg,var(--pink) 0%,var(--pink-soft) 40%,#fff3f7 52%,var(--pink-soft) 64%,var(--pink) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:15px;line-height:1.7;color:#f3dfe6;font-weight:300;max-width:520px;margin:0 auto}
+  .terms{display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px}
+  .chip{padding:10px 16px;border-radius:999px;border:1px solid rgba(234,213,168,.5);font-size:12px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--gold-lt);background:rgba(255,255,255,.04)}
+  .chip b{color:#fff;font-weight:600}
+
+  /* ---------- Cards ---------- */
+  .card{background:#fff;color:var(--text);border-radius:18px;padding:28px;margin-bottom:18px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .card.glass{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(234,213,168,.25);box-shadow:none}
+  .kicker{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+  h2{font-family:"Cormorant Garamond",serif;font-weight:400;font-size:30px;line-height:1.1;margin-bottom:12px}
+  .card.glass h2{color:var(--blush)}
+  .muted{font-size:13.5px;line-height:1.7;color:var(--gray)}
+  .card.glass .muted{color:#e9d7de}
+
+  .steps{display:grid;gap:14px;margin-top:8px;counter-reset:s}
+  .step{display:flex;gap:14px;align-items:flex-start}
+  .step:before{counter-increment:s;content:counter(s);flex:0 0 34px;height:34px;border-radius:50%;display:grid;place-items:center;
+    font-family:"Cormorant Garamond",serif;font-size:20px;color:var(--ink);background:linear-gradient(135deg,var(--gold-lt),var(--gold))}
+  .step p{font-size:14px;line-height:1.65;color:#f3dfe6}
+  .step b{color:#fff;font-weight:500}
+
+  /* ---------- Form bits ---------- */
+  label.lbl{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:16px 0 6px}
+  .req{color:var(--pink)}
+  .inp,select.inp{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:Jost,sans-serif;font-size:15px;
+    color:var(--text);background:#fff;outline:none;transition:border .2s,box-shadow .2s}
+  .inp:focus{border-color:var(--pink);box-shadow:0 0 0 4px rgba(232,80,122,.12)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row > div{flex:1;min-width:150px}
+  .row > div.sm{flex:0 0 90px;min-width:80px}
+  .hint{font-size:12px;color:var(--gray);margin-top:6px;line-height:1.55}
+
+  .combo{position:relative}
+  .list{position:absolute;left:0;right:0;top:calc(100% + 4px);max-height:280px;overflow-y:auto;background:#fff;border:1px solid var(--line);
+    border-radius:12px;box-shadow:0 14px 34px rgba(58,15,42,.18);display:none;z-index:20}
+  .list.open{display:block}
+  .opt{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f6eef1;font-size:14px;color:var(--text)}
+  .opt small{display:block;color:var(--gray);font-size:11.5px;margin-top:2px}
+  .opt mark{background:none;color:var(--pink-dark);font-weight:600}
+  .opt.active,.opt:hover{background:var(--pale)}
+  .opt.custom{color:var(--gray);font-style:italic}
+
+  .linkbox{display:none;margin-top:18px;padding:18px;border-radius:14px;background:var(--pale);border:1px dashed #f0c6d4}
+  .linkbox.show{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+  .linkbox .code{font-size:12px;color:var(--gray)}
+  .linkbox .code b{color:var(--pink-dark);letter-spacing:.08em}
+  .url{font-family:ui-monospace,Menlo,monospace;font-size:13px;word-break:break-all;color:var(--text);margin:6px 0 12px;
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
+  #qr{width:150px;height:150px}
+  #qr svg{width:150px;height:150px;display:block}
+  @media (max-width:520px){.linkbox.show{grid-template-columns:1fr}#qr{margin:0 auto}}
+
+  .choice{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;margin-top:8px;cursor:pointer;transition:border .2s,background .2s}
+  .choice:has(input:checked){border-color:var(--pink);background:var(--pale)}
+  .choice input{margin-top:3px;accent-color:var(--pink);width:16px;height:16px;flex:0 0 auto}
+  .choice span{font-size:14px;line-height:1.5}
+  .choice small{display:block;color:var(--gray);font-size:12.5px}
+  .sub{display:none;margin-top:4px}
+  .sub.show{display:block}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;cursor:pointer;
+    font-family:Jost,sans-serif;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;
+    padding:13px 20px;transition:transform .2s,box-shadow .2s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-pink{background:linear-gradient(90deg,var(--pink),var(--pink-dark));color:#fff;box-shadow:0 10px 28px rgba(232,80,122,.35)}
+  .btn-line{background:#fff;color:var(--pink-dark);border:1.5px solid var(--pink)}
+  .btn-gold{background:linear-gradient(90deg,var(--gold-lt),var(--gold));color:var(--ink);box-shadow:0 10px 28px rgba(201,169,110,.35)}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+  .submit{width:100%;margin-top:22px;padding:17px}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+  .status{display:none;margin-top:14px;padding:12px 16px;border-radius:10px;font-size:13.5px;text-align:center}
+  .status.ok{display:block;background:#f0fff4;color:#2d6a4f;border:1px solid #b7e4c7}
+  .status.err{display:block;background:#fff0f0;color:#b3261e;border:1px solid #ffcdd2}
+
+  /* Opportunity call-out: big and low on the page on purpose (bottom-heavy layout) */
+  .opp{text-align:center;padding:38px 24px;border-radius:20px;margin-top:8px;
+    background:linear-gradient(135deg,rgba(232,80,122,.25),rgba(201,169,110,.18));border:1px solid rgba(234,213,168,.45)}
+  .opp h2{font-size:clamp(30px,6vw,44px);color:#fff}
+  .opp p{color:#f3dfe6;font-size:14px;margin:0 auto 20px;max-width:440px;line-height:1.7}
+  footer{text-align:center;margin-top:30px;font-size:12px;color:rgba(255,255,255,.6);line-height:2}
+  footer a{color:var(--gold-lt);letter-spacing:.14em;text-transform:uppercase;font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Hali Sarah Parsons · Independent Beauty Consultant</p>
+    <h1>Become a Partner</h1>
+    <p>Didn't get my mailer? You can still join. Register your business, get your own referral code and link, and earn a share of every sale your customers make.</p>
+    <div class="terms">
+      <span class="chip"><b>20%</b> of all sales</span>
+      <span class="chip">First <b>90 days</b> per customer</span>
+      <span class="chip"><b>Free</b> 4×6 flyers</span>
+    </div>
+  </header>
+
+  <section class="card glass">
+    <p class="kicker">How it works</p>
+    <h2>Simple for you, simple for them</h2>
+    <div class="steps">
+      <div class="step"><p><b>Register below.</b> You get your own referral code and link right away, plus free 4×6 flyers in the mail.</p></div>
+      <div class="step"><p><b>Customers scan and pick your business.</b> Your business is added to the list customers choose from, so every referral is linked to your profile.</p></div>
+      <div class="step"><p><b>You earn 20%.</b> For the first 90 days after each customer is referred, you earn 20% of all their sales.</p></div>
+    </div>
+  </section>
+
+  <form class="card" id="reg" novalidate>
+    <p class="kicker">Register</p>
+    <h2>Tell me about your business</h2>
+
+    <label class="lbl" for="biz">Business name <span class="req">*</span></label>
+    <input class="inp" id="biz" autocomplete="organization">
+    <div class="hint" id="biz-hint"></div>
+
+    <label class="lbl" for="type">Type of business</label>
+    <select class="inp" id="type">
+      <option value="">Choose one…</option>
+      <option>Hair Salon</option><option>Nail Salon</option><option>Barbershop</option><option>Spa / Esthetics</option>
+      <option>Beauty Supply</option><option>Boutique / Retail</option><option>Fitness / Wellness</option><option>Other</option>
+    </select>
+
+    <label class="lbl" for="street">Business address <span class="req">*</span></label>
+    <input class="inp" id="street" placeholder="Street address" autocomplete="address-line1">
+    <div class="row">
+      <div><label class="lbl" for="city">City <span class="req">*</span></label><input class="inp" id="city" autocomplete="address-level2"></div>
+      <div class="sm"><label class="lbl" for="state">State</label><input class="inp" id="state" value="TX" maxlength="2" autocomplete="address-level1"></div>
+      <div class="sm"><label class="lbl" for="zip">ZIP <span class="req">*</span></label><input class="inp" id="zip" inputmode="numeric" maxlength="10" autocomplete="postal-code"></div>
+    </div>
+
+    <div class="row">
+      <div><label class="lbl" for="contact">Your name <span class="req">*</span></label><input class="inp" id="contact" autocomplete="name"></div>
+      <div><label class="lbl" for="role">Title / role</label><input class="inp" id="role" placeholder="Owner, Manager…"></div>
+    </div>
+    <div class="row">
+      <div><label class="lbl" for="email">Email <span class="req">*</span></label><input class="inp" id="email" type="email" autocomplete="email"></div>
+      <div><label class="lbl" for="phone">Phone <span class="req">*</span></label><input class="inp" id="phone" type="tel" autocomplete="tel"></div>
+    </div>
+
+    <label class="lbl">Send my 4×6 card-stock flyers to <span class="req">*</span></label>
+    <label class="choice"><input type="radio" name="ship" value="same" checked><span>My business address above</span></label>
+    <label class="choice"><input type="radio" name="ship" value="other"><span>A different address</span></label>
+    <div class="sub" id="ship-other">
+      <label class="lbl" for="s-street">Street address</label><input class="inp" id="s-street">
+      <div class="row">
+        <div><label class="lbl" for="s-city">City</label><input class="inp" id="s-city"></div>
+        <div class="sm"><label class="lbl" for="s-state">State</label><input class="inp" id="s-state" value="TX" maxlength="2"></div>
+        <div class="sm"><label class="lbl" for="s-zip">ZIP</label><input class="inp" id="s-zip" inputmode="numeric" maxlength="10"></div>
+      </div>
+    </div>
+    <label class="lbl" for="qty">How many flyers?</label>
+    <select class="inp" id="qty"><option>25</option><option selected>50</option><option>100</option></select>
+
+    <label class="lbl" for="pay">How would you like to get paid? <span class="req">*</span></label>
+    <select class="inp" id="pay">
+      <option value="">Choose one…</option>
+      <option>CashApp</option><option>PayPal</option><option>Zelle</option><option>Check</option><option>Other</option>
+    </select>
+    <div class="sub" id="pay-detail-wrap">
+      <label class="lbl" for="pay-detail" id="pay-detail-lbl">Details</label>
+      <input class="inp" id="pay-detail">
+    </div>
+    <label class="lbl" for="payee">Pay to (name or business on the account) <span class="req">*</span></label>
+    <input class="inp" id="payee">
+
+    <label class="choice" style="margin-top:20px">
+      <input type="checkbox" id="agree">
+      <span>I've read the <a href="/Partners/agreement.html" target="_blank" id="agree-link" style="color:var(--pink-dark)">Partner Agreement</a> and agree to its terms.
+        <small>20% of all sales from each referred customer during their first 90 days.</small></span>
+    </label>
+
+    <button class="btn btn-pink submit" id="submit-btn" type="submit">Register My Business →</button>
+    <div class="status" id="status" aria-live="polite"></div>
+  </form>
+
+  <!-- Shown after a successful registration -->
+  <section class="card" id="done" style="display:none">
+    <p class="kicker">You're in!</p>
+    <h2>Welcome, <span id="done-biz"></span></h2>
+    <p class="muted">Your code and link are below, and I've emailed them to you too. Customers who scan your link will see your business on the list right away.</p>
+    <div class="linkbox show">
+      <div>
+        <div class="code">Your referral code: <b id="code-out"></b></div>
+        <div class="url" id="url-out"></div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-line" id="copy-btn">Copy Link</button>
+          <button type="button" class="btn btn-pink" id="print-btn">Print My Own Flyer</button>
+        </div>
+        <div class="hint" style="margin-top:12px">Want a <a href="https://iqproductionz.com/QRCode" target="_blank" rel="noopener" style="color:var(--pink-dark);font-weight:500">custom QR code</a>? Copy your link above and paste it in.
+          <strong style="color:var(--pink-dark)">Partner bonus:</strong> sign up there with your code for <strong>$25 off</strong> your first dynamic QR code purchase.</div>
+      </div>
+      <div id="qr" aria-label="QR code for your referral link"></div>
+    </div>
+    <p style="margin-top:18px"><a class="btn btn-gold" id="done-agree" href="/Partners/agreement.html">Sign Agreement for Your Records</a></p>
+  </section>
+
+  <section class="opp">
+    <p class="kicker" style="color:var(--gold-lt)">Thinking bigger?</p>
+    <h2>Want to get 50% of all sales forever?</h2>
+    <p>Become a consultant yourself and run your own beauty business on your schedule.</p>
+    <a class="btn btn-gold" href="/Opportunity/">See the Opportunity →</a>
+  </section>
+
+  <footer>
+    Already got my mailer? <a href="/Partners/">Find your business here</a><br>
+    Questions? <a href="mailto:sistahaymarykay@gmail.com" style="text-transform:none;letter-spacing:0">sistahaymarykay@gmail.com</a><br>
+    Hali Sarah Parsons · Independent Beauty Consultant · Atascocita, TX
+  </footer>
+</div>
+
+<script>
+const SITE = 'https://beauty.iqproductionz.com';
+const REFERRAL_PAGE = SITE + '/Partners/Referrals/';
+const LIST_URL = '/Partners/Referrals/partners.json';
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function norm(s){ return String(s).toLowerCase().replace(/[’'`.,&-]/g,'').replace(/\s+/g,' ').trim(); }
+function status(t, m){ const el = $('status'); el.className = 'status ' + t; el.textContent = m; }
+
+/** Warns if the business is already a partner. WHY: avoids two codes for one business
+    (mailing-list businesses should use /Partners/ instead). */
+let listP = null;
+function checkExisting(){
+  const name = norm($('biz').value), city = norm($('city').value);
+  const hint = $('biz-hint');
+  if(name.length < 3){ hint.innerHTML = ''; return; }
+  listP = listP || Promise.all([
+    fetch(LIST_URL).then(r => r.json()).catch(() => []),
+    window.loadNewPartners()
+  ]).then(([a, b]) => a.concat(b));
+  listP.then(list => {
+    const hit = list.find(p => norm(p[0]) === name && (!city || norm(p[1]) === city));
+    hint.innerHTML = hit ? 'Looks like <b>' + esc(hit[0]) + (hit[1] ? ', ' + esc(hit[1]) : '') + '</b> is already a partner. <a href="/Partners/?ref=' + esc(hit[2]) + '" style="color:var(--pink-dark)">Get your existing link here</a>.' : '';
+  });
+}
+$('biz').addEventListener('blur', checkExisting);
+$('city').addEventListener('blur', checkExisting);
+
+document.querySelectorAll('input[name=ship]').forEach(r => r.addEventListener('change', () => {
+  $('ship-other').classList.toggle('show', document.querySelector('input[name=ship]:checked').value === 'other');
+}));
+
+/** WHY per-method labels: each payment app needs a different detail */
+const PAY = { CashApp:['$Cashtag','e.g. $GlamStudio713'], PayPal:['PayPal email',''], Zelle:['Zelle email or phone',''],
+  Check:['Mail checks to','Leave blank to use your business address'], Other:['Tell me how','e.g. Venmo @handle'] };
+$('pay').addEventListener('change', () => {
+  const m = PAY[$('pay').value];
+  $('pay-detail-wrap').classList.toggle('show', !!m);
+  if(m){ $('pay-detail-lbl').textContent = m[0]; $('pay-detail').placeholder = m[1]; }
+});
+$('biz').addEventListener('input', () => {
+  // WHY: the agreement opened from the checkbox shows the business name being typed
+  $('agree-link').href = '/Partners/agreement.html?biz=' + encodeURIComponent($('biz').value.trim());
+});
+
+$('reg').addEventListener('submit', async e => {
+  e.preventDefault();
+  const v = id => $(id).value.trim();
+  const shipOther = document.querySelector('input[name=ship]:checked').value === 'other';
+  const bizAddr = v('street') + ', ' + v('city') + ', ' + (v('state') || 'TX').toUpperCase() + ' ' + v('zip');
+  const shipTo = shipOther ? (v('s-street') && v('s-city') && v('s-zip') ? v('s-street') + ', ' + v('s-city') + ', ' + (v('s-state') || 'TX').toUpperCase() + ' ' + v('s-zip') : '') : bizAddr;
+
+  // WHY each check names the field: long form, so specific errors save hunting
+  if(!v('biz')) return status('err','Please enter your business name.');
+  if(!v('street') || !v('city') || !v('zip')) return status('err','Please enter your business address.');
+  if(!v('contact')) return status('err','Please enter your name.');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) return status('err','Please enter a valid email.');
+  if(v('phone').replace(/\D/g,'').length < 10) return status('err','Please enter a 10-digit phone number.');
+  if(!shipTo) return status('err','Please fill in the address for your flyers.');
+  if(!v('pay')) return status('err','Please choose how you would like to be paid.');
+  if(v('pay') !== 'Check' && !v('pay-detail')) return status('err','Please add your ' + PAY[v('pay')][0] + '.');
+  if(!v('payee')) return status('err','Please enter the name payments should go to.');
+  if(!$('agree').checked) return status('err','Please confirm you agree to the Partner Agreement.');
+  if(!window.MK_PARTNER_API) return status('err','Registration is being set up. Please email sistahaymarykay@gmail.com to join.');
+
+  const btn = $('submit-btn'); btn.disabled = true; btn.textContent = 'Registering…';
+  // WHY try/catch: network or Sheet errors should keep the form filled in and say what happened
+  try{
+    const res = await fetch(window.MK_PARTNER_API, {
+      method: 'POST',
+      // WHY text/plain: Google Apps Script can't answer the browser's pre-check for JSON requests
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ business: v('biz'), type: v('type'), street: v('street'), city: v('city'), state: v('state'), zip: v('zip'),
+        contact: v('contact'), role: v('role'), email: v('email'), phone: v('phone'), qty: v('qty'), shipTo: shipTo,
+        pay: v('pay'), payDetail: v('pay-detail') || (v('pay') === 'Check' ? 'Mail to business address' : ''), payee: v('payee'), agreed: true })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'Registration failed.');
+    showDone(v('biz'), data.code, data.existing);
+  }catch(err){
+    status('err', 'Something went wrong: ' + err.message + ' Please try again.');
+    btn.disabled = false; btn.textContent = 'Register My Business →';
+  }
+});
+
+/** Shows the new code, link and QR. WHY the QR right here: they can share it before the email arrives */
+function showDone(biz, code, existing){
+  const url = REFERRAL_PAGE + '?ref=' + code;
+  $('reg').style.display = 'none';
+  $('done').style.display = '';
+  $('done-biz').textContent = biz;
+  $('code-out').textContent = code;
+  $('url-out').textContent = url;
+  $('done-agree').href = '/Partners/agreement.html?ref=' + code + '&biz=' + encodeURIComponent(biz);
+  if(existing) $('done').querySelector('.muted').textContent = 'You were already registered, so here is your existing code and link.';
+  // WHY try/catch: if the QR library is blocked, the link still works
+  // WHY lips design: matches the brand's kiss QR style; tested to scan with phone decoders
+  try{ window._qrSrc = LipsQR.render($('qr'), url, { size: 150 }); }
+  catch(e){ $('qr').textContent = 'QR unavailable'; }
+  $('done').scrollIntoView({ behavior: 'smooth' });
+  window._done = { biz: biz, code: code, url: url };
+}
+
+$('copy-btn').addEventListener('click', () => {
+  const t = $('url-out').textContent;
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(
+    () => { $('copy-btn').textContent = 'Copied ✓'; setTimeout(() => $('copy-btn').textContent = 'Copy Link', 1600); },
+    () => prompt('Copy your link:', t));
+});
+
+/** Printable 4x6 flyer with their QR. WHY no company logos/photos: Legal said self-made print can't use them */
+$('print-btn').addEventListener('click', () => {
+  const d = window._done; if(!d) return;
+  const src = window._qrSrc || '';
+  const w = window.open('', '_blank'); if(!w) return alert('Please allow pop-ups to print your flyer.');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Flyer</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">'
+    + '<style>@page{size:4in 6in;margin:0}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Jost,sans-serif}'
+    + '.f{width:4in;height:6in;padding:.35in .3in;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;background:linear-gradient(180deg,#fff5f8,#fbd3e0);color:#2a1a20;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    + '.k{font-size:9pt;letter-spacing:.3em;text-transform:uppercase;color:#a67c3d}h1{font-family:"Cormorant Garamond",serif;font-weight:300;font-size:34pt;line-height:1;color:#c93a62;margin:.08in 0}'
+    + 'p{font-size:10pt;line-height:1.5;margin-bottom:.14in}img{width:2.1in;height:2.1in}.r{margin-top:.12in;font-size:9pt;color:#6b4a58}.b{font-weight:500;color:#2a1a20}.s{margin-top:.1in;font-size:7.5pt;color:#8a7a80}</style></head><body>'
+    + '<div class="f"><div class="k">Complimentary</div><h1>Free Skin Assessment</h1><p>Find the skincare routine<br>made for your skin in just a few minutes.</p>'
+    + (src ? '<img src="' + src + '" alt="QR code">' : '') + '<div class="r">Scan to start · Shared by <span class="b">' + esc(d.biz) + '</span></div>'
+    + '<div class="s">Hali Sarah Parsons · Independent Beauty Consultant</div></div>'
+    + '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>');
+  w.document.close();
+});
+</script>
+</body>
+</html>

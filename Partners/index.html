@@ -22,8 +22,11 @@
 <meta property="og:description" content="Earn 20% of sales from every customer you refer for their first 90 days.">
 <meta property="og:url" content="https://beauty.iqproductionz.com/Partners/">
 <meta name="twitter:card" content="summary">
+<script src="/assets/partner/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- WHY self-hosted: the lips QR design needs the raw QR grid, which this library provides -->
+<script src="/assets/partner/qrcode-generator.js"></script>
+<script src="/assets/partner/lipsqr.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -96,8 +99,8 @@
   .linkbox .code b{color:var(--pink-dark);letter-spacing:.08em}
   .url{font-family:ui-monospace,Menlo,monospace;font-size:13px;word-break:break-all;color:var(--text);margin:6px 0 12px;
     background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
-  #qr{background:#fff;padding:8px;border-radius:10px;border:1px solid var(--line);width:136px;height:136px}
-  #qr img,#qr canvas{width:120px!important;height:120px!important}
+  #qr{width:150px;height:150px}
+  #qr svg{width:150px;height:150px;display:block}
   @media (max-width:520px){.linkbox.show{grid-template-columns:1fr}#qr{margin:0 auto}}
 
   .choice{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;margin-top:8px;cursor:pointer;transition:border .2s,background .2s}
@@ -166,7 +169,7 @@
       <input class="inp" id="biz" type="text" autocomplete="off" placeholder="e.g. Hair Daze" role="combobox" aria-expanded="false" aria-controls="biz-list">
       <div class="list" id="biz-list" role="listbox"></div>
     </div>
-    <div class="hint" id="biz-hint">Not listed? Type your business name and choose “Use this name.” I'll create your link and email it to you.</div>
+    <div class="hint" id="biz-hint">Not on the list? <a href="/NewPartners/" style="color:var(--pink-dark);font-weight:500">Register your business here</a> to get your own referral code.</div>
 
     <div class="linkbox" id="linkbox">
       <div>
@@ -177,8 +180,7 @@
           <button type="button" class="btn btn-pink" id="print-btn">Print My Own Flyer</button>
         </div>
         <!-- WHY: some partners want a styled QR (logo, colors); this points them to the free tool with their exact link -->
-        <div class="hint" style="margin-top:12px">Want a custom QR code? Copy your direct link above and paste it at
-          <a href="https://iqproductionz.com/QRCode" target="_blank" rel="noopener" style="color:var(--pink-dark);font-weight:500">iqproductionz.com/QRCode</a>.
+        <div class="hint" style="margin-top:12px">Want a <a href="https://iqproductionz.com/QRCode" target="_blank" rel="noopener" style="color:var(--pink-dark);font-weight:500">custom QR code</a>? Copy your direct link above and paste it in.
           <strong style="color:var(--pink-dark)">Partner bonus:</strong> create a free account there, enter your referral code when you sign up, and get <strong>$25 off</strong> your first dynamic QR code purchase.</div>
       </div>
       <div id="qr" aria-label="QR code for your referral link"></div>
@@ -289,7 +291,9 @@ let onFileAddr = null;     // [street, city, state, zip]
 function loadList(){
   if(partners) return Promise.resolve(partners);
   if(loading) return loading;
-  loading = fetch(LIST_URL).then(r => r.json()).then(d => { partners = d; index = d.map(p => norm(p[0])); return d; })
+  // WHY merge: includes businesses that registered on /NewPartners/ (stored in the Google Sheet)
+  loading = Promise.all([fetch(LIST_URL).then(r => r.json()).catch(() => []), window.loadNewPartners ? window.loadNewPartners() : []])
+    .then(([a, b]) => { const d = a.concat(b); partners = d; index = d.map(p => norm(p[0])); return d; })
     .catch(() => { partners = []; index = []; return partners; });
   return loading;
 }
@@ -347,7 +351,8 @@ function showLink(){
   $('url-out').textContent = url;
   $('qr').innerHTML = '';
   // WHY try/catch: if the QR library didn't load, the link still shows and can be copied
-  try{ new QRCode($('qr'), { text: url, width: 240, height: 240, colorDark: '#3a0f2a', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
+  // WHY lips design: matches the brand's kiss QR style; tested to scan with phone decoders
+  try{ window._qrSrc = LipsQR.render($('qr'), url, { size: 150 }); }
   catch(e){ $('qr').textContent = 'QR unavailable'; }
   box.classList.add('show');
 }
@@ -411,8 +416,7 @@ $('copy-btn').addEventListener('click', () => {
     WHY no company logos/photos: Legal said self-made printed materials can't use them */
 $('print-btn').addEventListener('click', () => {
   if(!biz || !biz.code) return;
-  const qrImg = $('qr').querySelector('img[src^="data:"]') || $('qr').querySelector('canvas');
-  const src = qrImg ? (qrImg.tagName === 'CANVAS' ? qrImg.toDataURL() : qrImg.src) : '';
+  const src = window._qrSrc || '';
   const w = window.open('', '_blank');
   if(!w){ alert('Please allow pop-ups to print your flyer.'); return; }
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Flyer – ' + esc(biz.name) + '</title>'
@@ -421,10 +425,10 @@ $('print-btn').addEventListener('click', () => {
     + '.f{width:4in;height:6in;padding:.35in .3in;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;'
     + 'background:linear-gradient(180deg,#fff5f8 0%,#fbd3e0 100%);color:#2a1a20;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
     + '.k{font-size:9pt;letter-spacing:.3em;text-transform:uppercase;color:#a67c3d}h1{font-family:"Cormorant Garamond",serif;font-weight:300;font-size:34pt;line-height:1;color:#c93a62;margin:.08in 0}'
-    + 'p{font-size:10pt;line-height:1.5;margin-bottom:.14in}img{width:1.9in;height:1.9in;background:#fff;padding:.08in;border-radius:.1in}'
+    + 'p{font-size:10pt;line-height:1.5;margin-bottom:.14in}img{width:2.1in;height:2.1in}'
     + '.r{margin-top:.12in;font-size:9pt;color:#6b4a58}.b{font-weight:500;color:#2a1a20}.s{margin-top:.1in;font-size:7.5pt;color:#8a7a80;letter-spacing:.08em}</style></head><body>'
     + '<div class="f"><div class="k">Complimentary</div><h1>Free Skin Assessment</h1>'
-    + '<p>Find the skincare routine made for your skin in just a few minutes.</p>'
+    + '<p>Find the skincare routine<br>made for your skin in just a few minutes.</p>'
     + (src ? '<img src="' + src + '" alt="QR code">' : '')
     + '<div class="r">Scan to start · Shared by <span class="b">' + esc(biz.name) + '</span></div>'
     + '<div class="s">Hali Sarah Parsons · Independent Beauty Consultant</div></div>'
@@ -519,7 +523,7 @@ $('signup').addEventListener('submit', async e => {
     + 'Your ' + esc($('qty').value) + ' free flyers will ship to: ' + esc(addr) + '.</p>'
     + (code ? '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 6px;">Your referral link:</p>'
       + '<p style="margin:0 0 16px;"><a href="' + link + '" style="color:#e8507a;font-weight:600;">' + link + '</a></p>'
-      + '<p style="font-size:13px;color:#8a7a80;line-height:1.7;margin:0 0 16px;">Want a custom QR code? Paste your link at <a href="https://iqproductionz.com/QRCode" style="color:#e8507a;">iqproductionz.com/QRCode</a>.' + (code ? ' Partner bonus: sign up there with code <b>' + code + '</b> for $25 off your first dynamic QR code.' : '') + '</p>'
+      + '<p style="font-size:13px;color:#8a7a80;line-height:1.7;margin:0 0 16px;">Want a <a href="https://iqproductionz.com/QRCode" style="color:#e8507a;">custom QR code</a>? Paste your link in.' + (code ? ' Partner bonus: sign up there with code <b>' + code + '</b> for $25 off your first dynamic QR code.' : '') + '</p>'
       : '<p style="font-size:14px;color:#3d2530;line-height:1.8;">I\'ll email your personal referral link shortly.</p>')
     + '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 14px;">Terms: 20% of all sales from each customer you refer, for their first 90 days. Payment by ' + esc(pay) + '.</p>'
     + '<p style="margin:18px 0 0;"><a href="' + SITE + '/Partners/agreement.html?' + (code ? 'ref=' + code + '&' : '') + 'biz=' + encodeURIComponent(bizName) + '" style="display:inline-block;background:#e8507a;color:#fff;padding:12px 24px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Sign Agreement for Your Records</a></p>');
@@ -530,6 +534,14 @@ $('signup').addEventListener('submit', async e => {
     if(!window.emailjs) throw new Error('Email service did not load. Please refresh and try again.');
     await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, { to_email: CONSULTANT_EMAIL, subject: 'NEW PARTNER - ' + bizName + (code ? ' [' + code + ']' : ''), message: consultant, reply_to: email, name: name });
     await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, { to_email: email, subject: 'Welcome to the Partner Program', message: partner, reply_to: CONSULTANT_EMAIL, name: 'Hali Sarah Parsons' });
+    // WHY: keeps a record of mailing-list partners in the Google Sheet (fills their row by code).
+    // Fire-and-forget so a Sheet hiccup never blocks the sign-up they already completed.
+    if(window.MK_PARTNER_API){
+      fetch(window.MK_PARTNER_API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'join', code: code, business: bizName, city: (biz && biz.city) || '',
+          contact: name, role: $('role').value.trim(), email: email, phone: phone, qty: $('qty').value,
+          shipTo: addr, pay: pay, payDetail: payDetail, payee: payee, agreed: true }) }).catch(() => {});
+    }
     status('ok', '✓ You\'re signed up! Check your email for your link and agreement.');
     btn.textContent = 'Signed Up ✓';
   }catch(err){

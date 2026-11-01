@@ -28,6 +28,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://beauty.iqproductionz.com/assets/share/share-assess.jpg">
+<script src="/assets/partner/config.js"></script>
 <script src="/assets/partner/referral.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -165,7 +166,13 @@ let choice = null;     // {name, city, code} once a business is picked
 function loadPartners(){
   if(partners) return Promise.resolve(partners);
   if(loading) return loading;
-  loading = fetch(DATA_URL).then(r => r.json()).then(d => {
+  // WHY merge: businesses who registered on /NewPartners/ live in the Google Sheet, not the
+  // mailing-list file, and must show up here the moment they join
+  loading = Promise.all([
+    fetch(DATA_URL).then(r => r.json()).catch(() => []),
+    window.loadNewPartners ? window.loadNewPartners() : []
+  ]).then(([list, fresh]) => {
+    const d = list.concat(fresh);
     partners = d;
     index = d.map(p => norm(p[0]));
     return d;

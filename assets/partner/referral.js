@@ -59,6 +59,11 @@
       for(var i = 0; i < list.length; i++){
         if(list[i][2] === r.code){ r.name = list[i][0]; r.city = list[i][1]; save(r); break; }
       }
+      // WHY second lookup: codes from /NewPartners/ live in the Google Sheet, not the mailing-list file
+      if(!r.name && window.MK_PARTNER_API){
+        return fetch(window.MK_PARTNER_API + '?code=' + encodeURIComponent(r.code)).then(function(res){ return res.json(); })
+          .then(function(d){ if(d && d.ok){ r.name = d.business; r.city = d.city; save(r); } });
+      }
     }).catch(function(){ /* name stays blank; the code alone still identifies the partner */ });
   })();
 
@@ -117,6 +122,13 @@
           params.subject = (params.subject || '') + ' [Ref: ' + (r.name || r.code || 'Partner') + ']';
           params.referral_name = r.name || '';
           params.referral_code = r.code || '';
+          // WHY: counts this referred customer in the Google Sheet so the top partners are visible.
+          // Fire-and-forget: a Sheet problem must never stop the real email.
+          if(window.MK_PARTNER_API && window.fetch){
+            fetch(window.MK_PARTNER_API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: 'referral', code: r.code || '', business: r.name || '',
+                customerEmail: params.reply_to || '', subject: params.subject || '' }) }).catch(function(){});
+          }
         }
       }catch(e){ /* never block a real send because of referral info */ }
       return orig(service, template, params);
