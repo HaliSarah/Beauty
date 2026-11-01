@@ -49,7 +49,7 @@
   .eyebrow{font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold-lt)}
   /* WHY: tighter spacing on phones keeps "Independent Beauty Consultant" on one line */
   @media (max-width:430px){.eyebrow{letter-spacing:.2em;font-size:10.5px}}
-  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;font-size:clamp(52px,11vw,96px);line-height:.95;margin:14px 0 10px;
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;font-size:clamp(52px,11vw,96px);line-height:1.1;padding-bottom:.08em;margin:10px 0 6px;
     background:linear-gradient(100deg,var(--pink) 0%,var(--pink-soft) 40%,#fff3f7 52%,var(--pink-soft) 64%,var(--pink) 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent}
   .hero p{font-size:15px;line-height:1.7;color:#f3dfe6;font-weight:300;max-width:520px;margin:0 auto}
@@ -160,7 +160,7 @@
     <div class="steps">
       <div class="step"><p><b>Display the flyer.</b> I mail you free 4×6 card-stock flyers with a QR code, or you can print your own below.</p></div>
       <div class="step"><p><b>Customers scan and pick your business.</b> The QR code opens a page where they choose your company name. That links them to your partner profile.</p></div>
-      <div class="step"><p><b>You earn 20%.</b> For the first 90 days after each customer is referred, you earn 20% of all their sales. Payment goes out the way you choose below.</p></div>
+      <div class="step"><p><b>You earn 20%.</b> For the first 90 days after each customer is referred, you earn 20% of all their sales. When a customer's 90 days are up, I email you the total and send your payout within 7–10 business days. <i>Example: a $305 order earns you $61.</i></p></div>
     </div>
   </section>
 
@@ -264,12 +264,12 @@
   <section class="opp">
     <p class="kicker" style="color:var(--gold-lt)">Thinking bigger?</p>
     <h2>Want to get 50% of all sales forever?</h2>
-    <p>Become a consultant yourself<br>and run your own beauty business on your schedule.</p>
+    <p>Become a consultant yourself.<br>Run your own beauty business on your schedule.</p>
     <a class="btn btn-gold" href="/Opportunity/">See the Opportunity →</a>
   </section>
 
   <footer>
-    <a href="agreement.html" id="agreement-link">Sign Agreement for Your Records</a><br>
+    Want to make your own program? <a href="https://iqproductionz.com/BookNow/HTML/" target="_blank" rel="noopener" style="text-transform:none;letter-spacing:0">Make a Request.</a><br>
     Questions? <a href="mailto:sistahaymarykay@gmail.com" style="text-transform:none;letter-spacing:0">sistahaymarykay@gmail.com</a><br>
     Hali Sarah Parsons · Independent Beauty Consultant · Atascocita, TX
   </footer>
@@ -487,6 +487,36 @@ document.querySelectorAll('input[name=payto]').forEach(r => r.addEventListener('
 $('biz').addEventListener('input', syncPayTo);
 $('biz').addEventListener('blur', () => setTimeout(syncPayTo, 150));
 
+// ─── BRANDED EMAIL (matches the Branded Email Sender) ─
+/** Pink pill button. WHY inline styles: email apps strip <style> blocks */
+function btnHtml(text, url){
+  return '<div style="text-align:center;margin:22px 0;"><a href="' + url + '" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#e8507a,#c93a62);background-color:#e8507a;color:#ffffff;border-radius:50px;padding:14px 32px;font-size:12px;font-family:Jost,Arial,sans-serif;font-weight:600;letter-spacing:2px;text-transform:uppercase;text-decoration:none;">' + esc(text) + '</a></div>';
+}
+/** Wraps a message in the same pink header, greeting, signature and footer as the Branded Email
+    Sender. WHY: partners get one consistent look from every email Hali sends */
+function branded(tagline, firstName, inner){
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#fdf6f8;font-family:Jost,Arial,sans-serif;">'
+    + '<div style="padding:24px 16px;background:#fdf6f8;"><div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;">'
+    + '<div style="background:linear-gradient(135deg,#e8507a,#c93a62);background-color:#e8507a;padding:32px 40px;text-align:center;">'
+    + '<h1 style="margin:0;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:28px;font-weight:300;color:#ffffff;letter-spacing:3px;text-transform:uppercase;">Beauty by Hali Sarah</h1>'
+    + '<p style="margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.85);letter-spacing:2px;text-transform:uppercase;">' + esc(tagline) + '</p></div>'
+    + '<div style="padding:32px 40px;">'
+    + '<p style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:26px;color:#2a1a20;font-weight:300;margin:0 0 6px;">Dear ' + esc(firstName) + ',</p>'
+    + '<div style="width:40px;height:1px;background:#e8507a;margin:0 0 22px;"></div>'
+    + inner
+    + '<p style="font-size:13px;color:#8a7a80;line-height:1.9;margin:20px 0;">As always, I&rsquo;m here to answer any questions along the way. Don&rsquo;t hesitate to reach out!</p>'
+    + '<div style="border-top:1px solid #f0e8eb;margin-top:32px;padding-top:24px;">'
+    + '<p style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:20px;color:#6b3fa0;font-style:italic;margin:0 0 2px;">Skin-cerely yours,</p>'
+    + '<p style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:17px;color:#2a1a20;margin:0 0 10px;">Hali Sarah Parsons</p>'
+    + '<p style="font-size:11px;color:#b09090;margin:0 0 2px;letter-spacing:1px;text-transform:uppercase;">Mary Kay Independent Beauty Consultant</p>'
+    + '<p style="font-size:11px;margin:0 0 2px;"><a href="mailto:' + CONSULTANT_EMAIL + '" style="color:#e8507a;text-decoration:underline;font-weight:500;">' + CONSULTANT_EMAIL + '</a></p>'
+    + '<p style="font-size:11px;margin:0;"><a href="https://www.marykay.com/sistahay/en/ibcprofile" target="_blank" style="color:#e8507a;text-decoration:underline;font-weight:500;">marykay.com/sistahay</a></p>'
+    + '</div></div>'
+    + '<div style="background:#fce4ec;padding:18px 40px;text-align:center;font-size:11px;color:#a06070;letter-spacing:1px;">Mary Kay Independent Beauty Consultant<br>'
+    + '<a href="mailto:' + CONSULTANT_EMAIL + '" style="color:#e8507a;text-decoration:underline;">' + CONSULTANT_EMAIL + '</a></div>'
+    + '</div></div></body></html>';
+}
+
 // ─── SUBMIT ──────────────────────────────────────────
 function shipAddress(){
   if(document.querySelector('input[name=ship]:checked').value === 'onfile'){
@@ -547,16 +577,18 @@ $('signup').addEventListener('submit', async e => {
     + row('Payment', payLine) + row('Pay to', payee) + row('Agreed', 'Yes, ' + new Date().toLocaleString())
     + '</table>');
 
-  const partner = wrap('Welcome Aboard',
-    '<p style="font-family:Georgia,serif;font-size:24px;color:#2a1a20;margin:0 0 14px;">Thank you, ' + esc(name.split(' ')[0]) + '!</p>'
-    + '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 14px;">I received your partner sign-up for <b>' + esc(bizName) + '</b>. '
-    + 'Your ' + esc($('qty').value) + ' free flyers will ship to: ' + esc(addr) + '.</p>'
-    + (code ? '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 6px;">Your referral link:</p>'
-      + '<p style="margin:0 0 16px;"><a href="' + link + '" style="color:#e8507a;font-weight:600;">' + link + '</a></p>'
-      + '<p style="font-size:13px;color:#8a7a80;line-height:1.7;margin:0 0 16px;">Want a <a href="https://iqproductionz.com/QRCode" style="color:#e8507a;">custom QR code</a>? Paste your link in.' + (code ? ' Partner bonus: sign up there with code <b>' + code + '</b> for $25 off your first dynamic QR code.' : '') + '</p>'
-      : '<p style="font-size:14px;color:#3d2530;line-height:1.8;">I\'ll email your personal referral link shortly.</p>')
-    + '<p style="font-size:14px;color:#3d2530;line-height:1.8;margin:0 0 14px;">Terms: 20% of all sales from each customer you refer, for their first 90 days. Payment by ' + esc(pay) + '.</p>'
-    + '<p style="margin:18px 0 0;"><a href="' + SITE + '/Partners/agreement.html?' + (code ? 'ref=' + code + '&' : '') + 'biz=' + encodeURIComponent(bizName) + '" style="display:inline-block;background:#e8507a;color:#fff;padding:12px 24px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Sign Agreement for Your Records</a></p>');
+  const agreeUrl = SITE + '/Partners/agreement.html?' + (code ? 'ref=' + code + '&' : '') + 'biz=' + encodeURIComponent(bizName);
+  const partner = branded('Partner Program', name.split(' ')[0],
+    '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;">I received your partner sign-up for <strong>' + esc(bizName) + '</strong>. '
+    + 'Your ' + esc($('qty').value) + ' free 4×6 flyers will ship to: ' + esc(addr) + '.</p>'
+    + (code
+      ? '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;">Your referral code is <strong style="color:#e8507a;letter-spacing:1px;">' + code + '</strong>. Share your personal link:</p>'
+        + '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;"><a href="' + link + '" target="_blank" style="color:#e8507a;text-decoration:underline;font-weight:500;">' + link + '</a></p>'
+        + '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;">Want a <a href="https://iqproductionz.com/QRCode" target="_blank" style="color:#e8507a;text-decoration:underline;font-weight:500;">custom QR code</a>? Paste your link in. '
+        + 'Partner bonus: sign up there with code <strong>' + code + '</strong> for $25 off your first dynamic QR code.</p>'
+      : '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;">I\'ll email your personal referral link shortly.</p>')
+    + '<p style="font-size:14px;color:#3d2530;line-height:1.9;margin:0 0 14px;">Terms: 20% of all sales from each customer you refer, for their first 90 days. Payment by ' + esc(pay) + '.</p>'
+    + btnHtml('Sign Agreement for Your Records', agreeUrl));
 
   const btn = $('submit-btn'); btn.disabled = true; btn.textContent = 'Sending…';
   // WHY try/catch: EmailJS can fail on network/quota; keep what they typed and show the reason

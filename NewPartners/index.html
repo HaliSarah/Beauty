@@ -49,7 +49,7 @@
   .eyebrow{font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold-lt)}
   /* WHY: tighter spacing on phones keeps "Independent Beauty Consultant" on one line */
   @media (max-width:430px){.eyebrow{letter-spacing:.2em;font-size:10.5px}}
-  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;font-size:clamp(52px,11vw,96px);line-height:.95;margin:14px 0 10px;
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;font-size:clamp(52px,11vw,96px);line-height:1.1;padding-bottom:.08em;margin:10px 0 6px;
     background:linear-gradient(100deg,var(--pink) 0%,var(--pink-soft) 40%,#fff3f7 52%,var(--pink-soft) 64%,var(--pink) 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent}
   .hero p{font-size:15px;line-height:1.7;color:#f3dfe6;font-weight:300;max-width:520px;margin:0 auto}
@@ -157,7 +157,7 @@
     <div class="steps">
       <div class="step"><p><b>Register below.</b> You get your own referral code and link right away, plus free 4×6 flyers in the mail.</p></div>
       <div class="step"><p><b>Customers scan and pick your business.</b> Your business is added to the list customers choose from, so every referral is linked to your profile.</p></div>
-      <div class="step"><p><b>You earn 20%.</b> For the first 90 days after each customer is referred, you earn 20% of all their sales.</p></div>
+      <div class="step"><p><b>You earn 20%.</b> For the first 90 days after each customer is referred, you earn 20% of all their sales. When a customer's 90 days are up, I email you the total and send your payout within 7–10 business days. <i>Example: a $305 order earns you $61.</i></p></div>
     </div>
   </section>
 
@@ -195,13 +195,18 @@
     <!-- WHY: partners should know their contact info won't be used to sell to them -->
     <div class="hint" style="margin-top:8px">🔒 Your email and phone are only used for the partner program: sending your referral details and reaching you if there's ever a problem with a payment. I won't use them for sales or marketing.</div>
 
-    <!-- WHY its own required fields: flyers can go anywhere they choose; the business address is kept separately -->
-    <label class="lbl" for="s-street">Preferred mailing address for flyers <span class="req">*</span></label>
-    <input class="inp" id="s-street" placeholder="Where should I mail your free 4×6 flyers?" autocomplete="shipping address-line1">
-    <div class="row">
-      <div><label class="lbl" for="s-city">City <span class="req">*</span></label><input class="inp" id="s-city" autocomplete="shipping address-level2"></div>
-      <div class="sm"><label class="lbl" for="s-state">State</label><input class="inp" id="s-state" value="TX" maxlength="2" autocomplete="shipping address-level1"></div>
-      <div class="sm"><label class="lbl" for="s-zip">ZIP <span class="req">*</span></label><input class="inp" id="s-zip" inputmode="numeric" maxlength="10" autocomplete="shipping postal-code"></div>
+    <!-- WHY a choice: most partners want flyers at the business, but some prefer another address -->
+    <label class="lbl">Preferred mailing address for flyers <span class="req">*</span></label>
+    <label class="choice"><input type="radio" name="ship" value="above" checked><span>Use Above Address</span></label>
+    <label class="choice"><input type="radio" name="ship" value="new"><span>Add a New Address</span></label>
+    <div class="sub" id="ship-new">
+      <label class="lbl" for="s-street">Street address <span class="req">*</span></label>
+      <input class="inp" id="s-street" autocomplete="shipping address-line1">
+      <div class="row">
+        <div><label class="lbl" for="s-city">City <span class="req">*</span></label><input class="inp" id="s-city" autocomplete="shipping address-level2"></div>
+        <div class="sm"><label class="lbl" for="s-state">State</label><input class="inp" id="s-state" value="TX" maxlength="2" autocomplete="shipping address-level1"></div>
+        <div class="sm"><label class="lbl" for="s-zip">ZIP <span class="req">*</span></label><input class="inp" id="s-zip" inputmode="numeric" maxlength="10" autocomplete="shipping postal-code"></div>
+      </div>
     </div>
     <label class="lbl" for="qty">How many flyers?</label>
     <select class="inp" id="qty"><option>25</option><option selected>50</option><option>100</option></select>
@@ -257,12 +262,12 @@
   <section class="opp">
     <p class="kicker" style="color:var(--gold-lt)">Thinking bigger?</p>
     <h2>Want to get 50% of all sales forever?</h2>
-    <p>Become a consultant yourself<br>and run your own beauty business on your schedule.</p>
+    <p>Become a consultant yourself.<br>Run your own beauty business on your schedule.</p>
     <a class="btn btn-gold" href="/Opportunity/">See the Opportunity →</a>
   </section>
 
   <footer>
-    Already got my mailer? <a href="/Partners/">Find your business here</a><br>
+    Want to make your own program? <a href="https://iqproductionz.com/BookNow/HTML/" target="_blank" rel="noopener" style="text-transform:none;letter-spacing:0">Make a Request.</a><br>
     Questions? <a href="mailto:sistahaymarykay@gmail.com" style="text-transform:none;letter-spacing:0">sistahaymarykay@gmail.com</a><br>
     Hali Sarah Parsons · Independent Beauty Consultant · Atascocita, TX
   </footer>
@@ -327,11 +332,20 @@ document.querySelectorAll('input[name=payto]').forEach(r => r.addEventListener('
 $('biz').addEventListener('input', syncPayTo);
 $('biz').addEventListener('blur', () => setTimeout(syncPayTo, 150));
 
+/** Opens the new-address fields only when "Add a New Address" is picked */
+document.querySelectorAll('input[name=ship]').forEach(r => r.addEventListener('change', () => {
+  const isNew = document.querySelector('input[name=ship]:checked').value === 'new';
+  $('ship-new').classList.toggle('show', isNew);
+  if(isNew) $('s-street').focus();
+}));
 $('reg').addEventListener('submit', async e => {
   e.preventDefault();
   const v = id => $(id).value.trim();
-  // WHY its own fields: flyers can go anywhere they choose; the business address is kept separately
-  const shipTo = v('s-street') && v('s-city') && v('s-zip') ? v('s-street') + ', ' + v('s-city') + ', ' + (v('s-state') || 'TX').toUpperCase() + ' ' + v('s-zip') : '';
+  // WHY: "Use Above Address" copies the business address; "Add a New Address" uses the extra fields
+  const useAbove = document.querySelector('input[name=ship]:checked').value === 'above';
+  const shipTo = useAbove
+    ? v('street') + ', ' + v('city') + ', ' + (v('state') || 'TX').toUpperCase() + ' ' + v('zip')
+    : (v('s-street') && v('s-city') && v('s-zip') ? v('s-street') + ', ' + v('s-city') + ', ' + (v('s-state') || 'TX').toUpperCase() + ' ' + v('s-zip') : '');
 
   // WHY each check names the field: long form, so specific errors save hunting
   if(!v('biz')) return status('err','Please enter your business name.');
@@ -339,7 +353,7 @@ $('reg').addEventListener('submit', async e => {
   if(!v('contact')) return status('err','Please enter your name.');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) return status('err','Please enter a valid email.');
   if(v('phone').replace(/\D/g,'').length < 10) return status('err','Please enter a 10-digit phone number.');
-  if(!shipTo) return status('err','Please fill in your preferred mailing address for flyers.');
+  if(!shipTo) return status('err','Please fill in the new mailing address for your flyers.');
   if(!v('pay')) return status('err','Please choose how you would like to be paid.');
   if(v('pay') !== 'Check' && !v('pay-detail')) return status('err','Please add your ' + PAY[v('pay')][0] + '.');
   if(!payeeName()) return status('err', document.querySelector('input[name=payto]:checked').value === 'personal' ? 'Please enter the name on your payment account.' : 'Please enter your business name.');

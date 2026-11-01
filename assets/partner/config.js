@@ -8,7 +8,7 @@
 */
 // WHY one shared file: paste the /exec URL once and every page (Referrals, Partners,
 // NewPartners, referral tracking) starts recognizing new partners. Empty = feature off.
-window.MK_PARTNER_API = 'https://script.google.com/macros/s/AKfycbw5hdV3I6s4YI1BbAF48WAsyNNQ6FvIy8A-Ub7d9JbHNUEvvptLkl3iCtvKF0h3pm8g/exec';
+window.MK_PARTNER_API = 'https://script.google.com/macros/s/AKfycbwx7n4JeY5KHc_p8dEdhDK18EIU1IhLfmLULmc31u_fLMN1-kDPQVunY7dZ0Ss8hFwT/exec';
 
 /** Loads new partners from the Sheet as [[business, city, code], ...].
     WHY cached promise: several pieces of a page may ask at once; only one request goes out. */
